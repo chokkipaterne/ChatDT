@@ -6,10 +6,16 @@ from cart import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 import math
 import json
+import random
+import string
 
 def generate_tree(filename, train_size=0.7, constraints={}):
-    response = {"constraints":json.dumps(constraints, indent = 4), "filename":filename, "train_size":train_size, "accuracy":"", "string_tree":"", "dict_tree": ""}
+    random_code = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(10)])
+    response_filename = f"responses/{random_code}_{filename}"
+    response_filename = response_filename.replace(".csv", ".json")
 
+    response = {"response_filename":response_filename, "constraints":constraints, "filename":filename, "train_size":train_size, "accuracy":"", "string_tree":"", "dict_tree": ""}
+    
     # 1. Load dataset.
     shuffle_filename = f"uploads/shuffle_{filename}"
     df = pd.read_csv(shuffle_filename)
@@ -66,8 +72,16 @@ def generate_tree(filename, train_size=0.7, constraints={}):
     response["string_tree"] = string_tree
 
     dict_tree = clf.generate_dict()
-    response["dict_tree"] = json.dumps(dict_tree, indent = 4)
+    #response["dict_tree"] = json.dumps(dict_tree, indent = 4)
+    response["dict_tree"] = dict_tree
 
-    myrep = json.dumps(response, indent = 4)
+    #myrep = json.dumps(response, indent = 4)
 
-    return myrep
+    f = open(response_filename, 'w')
+    f.write(str(response))
+    f.close()
+
+    return response
+
+rep = generate_tree("iris_20240128204554.csv")
+print(rep)

@@ -68,12 +68,8 @@ async def get_data(filename: str, page: int = Query(1, gt=0), per_page: int = Qu
 
     return paginated_data
 
-@app.post("/process_data/", response_class=JSONResponse)
-async def process_data(
-    filename: str,
-    train_size: float = 0.7,
-    constraints: dict = {}
-):
+@app.post("/process_data", response_class=JSONResponse)
+async def process_data(filename: str, train_size: float = 0.7, constraints: dict = {}):
     try:
         # Call the main function with provided parameters
         result = generate_tree(filename, train_size, constraints)

@@ -189,11 +189,8 @@ class DecisionTreeClassifier:
             dict = tree
         
         if not dict['right']:
-            final_str = final_str + "\n"+ class_names[dict['predicted_class']]
+            final_str = final_str + class_names[dict['predicted_class']] + "\n"
+            return final_str
         else:
-            final_str = final_str + "\n"+ (feature_names[dict['feature_index']], "<=", dict['threshold'], "?", dict['gini'], final_str)
-            final_str = final_str + "\n"+ ("%sleft:" % (indent))
-            final_str = final_str + "\n"+ self.print_tree(feature_names, class_names, dict['left'], indent + indent, final_str)
-            final_str = final_str + "\n"+ ("%sright:" % (indent))
-            final_str = final_str + "\n"+ self.print_tree(feature_names, class_names, dict['right'], indent + indent, final_str)
-
+            return self.string_tree(feature_names, class_names, dict['left'], indent + indent)
+        return final_str

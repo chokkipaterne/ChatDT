@@ -13,6 +13,8 @@ develop-eggs/
 dist/
 downloads/
 uploads/
+responses/
+*.json
 *.csv
 eggs/
 .eggs/
