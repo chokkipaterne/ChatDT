@@ -11,7 +11,7 @@ import string
 
 def generate_tree(filename, train_size=0.7, constraints={}):
     random_code = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(10)])
-    response_filename = f"responses/{random_code}_{filename}"
+    response_filename = f"{random_code}_{filename}"
     response_filename = response_filename.replace(".csv", ".json")
 
     response = {"response_filename":response_filename, "constraints":constraints, "filename":filename, "train_size":train_size, "accuracy":"", "string_tree":"", "dict_tree": ""}
@@ -68,20 +68,22 @@ def generate_tree(filename, train_size=0.7, constraints={}):
     response["accuracy"] = accuracy
     
     # 4. Visualize.
+    clf.print_tree(features, target_names)
+
     string_tree = clf.string_tree(features, target_names)
     response["string_tree"] = string_tree
+    print(string_tree)
 
     dict_tree = clf.generate_dict()
     #response["dict_tree"] = json.dumps(dict_tree, indent = 4)
     response["dict_tree"] = dict_tree
 
-    #myrep = json.dumps(response, indent = 4)
+    myrep = str(response).replace("'",'"')
 
-    f = open(response_filename, 'w')
-    f.write(str(response.replace("'",'"')))
+    f = open("responses/"+response_filename, 'w')
+    f.write(myrep)
     f.close()
 
-    return response
+    return myrep
 
-rep = generate_tree("iris_20240128204554.csv")
-print(rep)
+#rep = generate_tree("iris_20240128204554.csv")

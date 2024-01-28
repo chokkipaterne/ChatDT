@@ -21,6 +21,7 @@ UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 
 app.mount('/uploads', StaticFiles(directory='uploads'),'uploads')
 
+#iris_20240128204554.csv
 @app.post('/upload')
 def upload_file(uploaded_file: UploadFile = File(...)):
     if uploaded_file.content_type != 'text/csv':
@@ -44,7 +45,7 @@ def upload_file(uploaded_file: UploadFile = File(...)):
     }
 
 
-@app.get("/data", response_class=JSONResponse)
+@app.get("/data")
 async def get_data(filename: str, page: int = Query(1, gt=0), per_page: int = Query(10, gt=0)):
     try:
         # Read the CSV file into a Pandas DataFrame

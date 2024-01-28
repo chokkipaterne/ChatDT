@@ -164,10 +164,8 @@ class DecisionTreeClassifier:
         #needed_keys = ['left', 'right', 'threshold']
         if not tree:
             tree = self.tree_
-            dict = tree.__dict__
+        dict = tree.__dict__
             #dict = {k:dict[k] for k in needed_keys}
-        else:
-            dict = tree
         
         if not dict['right']:
             print(class_names[dict['predicted_class']])
@@ -189,7 +187,7 @@ class DecisionTreeClassifier:
         else:
             return feature_names[dict['feature_index']]+ "<="+ str(float(dict['threshold']))+ "?"+ str(float(dict['gini']))+ "\n" \
             + str("%sleft:" % (indent)) \
-            + self.string_tree(feature_names, class_names, dict['left'], indent + indent) + "\n" \
+            + self.string_tree(feature_names, class_names, dict['left'], indent + indent) \
             + str("%sright:" % (indent)) \
-            + self.string_tree(feature_names, class_names, dict['right'], indent + indent) + "\n"
-        return final_str
+            + self.string_tree(feature_names, class_names, dict['right'], indent + indent)
+        
