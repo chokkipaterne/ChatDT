@@ -78,7 +78,7 @@ def generate_tree(filename, train_size=0.7, constraints={}):
     #myrep = json.dumps(response, indent = 4)
 
     f = open(response_filename, 'w')
-    f.write(str(response))
+    f.write(str(response.replace("'",'"')))
     f.close()
 
     return response
