@@ -1,0 +1,6 @@
+pip install fastapi
+pip install "uvicorn[standard]"
+uvicorn server:app --reload
+
+//Access link
+http://127.0.0.1:8000/docs
