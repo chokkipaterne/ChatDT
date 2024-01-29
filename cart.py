@@ -9,7 +9,6 @@ class DecisionTreeClassifier:
     def __init__(self, constraints={}):
         self.constraints = constraints
         
-
     def fit(self, X, y):
         """Build decision tree classifier."""
         self.n_classes_ = len(set(y))  # classes are assumed to go from 0 to n-1

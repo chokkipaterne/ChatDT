@@ -2,16 +2,9 @@ import shutil
 import time
 import pandas as pd
 from fastapi import FastAPI, UploadFile, File, status, Query, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import HTTPException
 import os
-import numpy as np
-from sklearn.tree import export_graphviz
-from sklearn.utils import Bunch
-from cart import DecisionTreeClassifier
-from sklearn.model_selection import train_test_split
-import math
 from utils import generate_tree
 
 app = FastAPI()
@@ -44,7 +37,6 @@ def upload_file(uploaded_file: UploadFile = File(...)):
         'path': path,
     }
 
-
 @app.get("/data")
 async def get_data(filename: str, page: int = Query(1, gt=0), per_page: int = Query(10, gt=0)):
     try:
@@ -69,7 +61,7 @@ async def get_data(filename: str, page: int = Query(1, gt=0), per_page: int = Qu
 
     return paginated_data
 
-@app.post("/process_data", response_class=JSONResponse)
+@app.post("/process_data")
 async def process_data(filename: str, train_size: float = 0.7, constraints: dict = {}):
     try:
         # Call the main function with provided parameters
