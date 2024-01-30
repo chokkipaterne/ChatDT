@@ -9,3 +9,5 @@ http://127.0.0.1:8000/docs
 https://www.npmjs.com/package/react-d3-tree
 
 https://github.com/singular1ty94/react-decisiontree
+
+npx create-react-app client
