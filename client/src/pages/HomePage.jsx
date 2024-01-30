@@ -1,10 +1,17 @@
+import Instructions from 'components/Instructions';
+import TableComponent from 'components/TableComponent';
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { addMessage, updateInstructions } from 'state';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const dtfile = useSelector((state) => state.dtfile);
+  const messages = useSelector((state) => state.messages);
+  //const instructions = useSelector((state) => state.instructions);
+  const columns = useSelector((state) => state.columns);
 
   useEffect(() => {
     if (dtfile === null) {
@@ -12,25 +19,139 @@ const HomePage = () => {
     }
   }, [dtfile, navigate]);
 
-  const [messages, setMessages] = useState([]);
+  //const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [sidebar, setSidebar] = useState(false);
+  const [contentSidebar, setContentSidebar] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const instructionsArray = [
+    'set features to',
+    'set target to',
+    'set max depth to',
+    'set min samples split to',
+    'generate',
+  ];
+
+  const getNumber = (str) => {
+    const regex = /[+-]?\d+(\.\d+)?/g;
+    if (str.match(regex)) {
+      const floats = str.match(regex).map(function (v) {
+        return parseFloat(v);
+      });
+      return floats[0];
+    }
+    return null;
+  };
+
+  const getColumns = (str) => {
+    const myArray = str.split(',');
+    let listCols = [];
+    for (let i = 0; i < myArray.length; i++) {
+      for (let j = 0; j < columns.length; j++) {
+        if (myArray[i].trim() !== '' && myArray[i].trim() === columns[j]) {
+          listCols = [...listCols, columns[j]];
+          break;
+        }
+      }
+    }
+    //console.log(listCols);
+    return listCols;
+  };
 
   const handleSendMessage = () => {
     if (inputValue.trim() !== '') {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { text: inputValue, sender: 'user' },
-      ]);
-      // In a real scenario, you would send the message to the chatbot and get the response.
-      // For simplicity, we'll just echo the user's message here.
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { text: `You said: ${inputValue}`, sender: 'bot' },
-      ]);
+      const value = inputValue.trim();
+      dispatch(
+        addMessage({
+          text: value,
+          sender: 'user',
+          info: false,
+          table: false,
+          tree: false,
+          back: null,
+        })
+      );
+      let findMatch = false;
+      for (let i = 0; i < instructionsArray.length; i++) {
+        if (value.includes(instructionsArray[i])) {
+          const str = value.replace(instructionsArray[i], '');
+          if (i === instructionsArray.length - 1) {
+            findMatch = true;
+            setLoading(true);
+          } else if (i === 0) {
+            //features
+            const cols = getColumns(str);
+            if (cols.length > 0) {
+              findMatch = true;
+              dispatch(
+                updateInstructions({
+                  features: cols,
+                })
+              );
+            }
+          } else if (i === 1) {
+            //target
+            const cols = getColumns(str);
+            if (cols.length > 0) {
+              findMatch = true;
+              dispatch(
+                updateInstructions({
+                  target: cols[0],
+                })
+              );
+            }
+          } else if (i === 2) {
+            //max_depth
+            const num = getNumber(str);
+            if (num) {
+              findMatch = true;
+              dispatch(
+                updateInstructions({
+                  max_depth: num,
+                })
+              );
+            }
+          } else if (i === 3) {
+            //min_samples_split
+            const num = getNumber(str);
+            if (num) {
+              findMatch = true;
+              dispatch(
+                updateInstructions({
+                  min_samples_split: num,
+                })
+              );
+            }
+          }
+          break;
+        }
+      }
+      if (!findMatch) {
+        dispatch(
+          addMessage({
+            text: 'I am not able to understand your request. Click on "i" to get more instructions about the commands to use to interact with me.',
+            sender: 'bot',
+            info: true,
+            table: true,
+            tree: false,
+            back: null,
+          })
+        );
+      }
       setInputValue('');
-      console.log(messages);
+      //console.log(messages);
     }
+  };
+
+  /*const displayTree = () => {
+    //info: 1, table: 2, tree: 3, back: 4 ... 'reset',
+    setSidebar(true);
+    setContentSidebar(3);
+  };*/
+  const show = (value) => {
+    setSidebar(true);
+    setContentSidebar(value);
   };
 
   return (
@@ -38,9 +159,19 @@ const HomePage = () => {
       <div className='flex h-screen pt-16'>
         {/* Left Sidebar */}
         {sidebar && (
-          <div className='w-1/2 p-4 overflow-y-auto shadow-md'>
-            <p className='text-lg font-semibold'>Chatbot Name</p>
-            <p className='text-gray-500'>Some sidebar text here...</p>
+          <div className='w-2/3 p-4 overflow-y-auto overflow-x-auto shadow-md'>
+            <div
+              className='avatar placeholder relative top-2 float-right'
+              onClick={() => {
+                setSidebar(false);
+              }}
+            >
+              <div className='bg-neutral text-neutral-content rounded-full w-8 shadow-md cursor-pointer'>
+                <span className='text-xs'>X</span>
+              </div>
+            </div>
+            {contentSidebar === 1 && <Instructions />}
+            {contentSidebar === 2 && <TableComponent />}
           </div>
         )}
 
@@ -64,10 +195,68 @@ const HomePage = () => {
                     )}
                   </div>
                 </div>
-                <div className='chat-bubble'>{message.text}</div>
-                <div className='chat-footer opacity-50'>Delivered</div>
+                <div
+                  className={`chat-bubble ${
+                    message.sender === 'user' ? 'chat-bubble-primary' : ''
+                  }`}
+                >
+                  {message.text}
+                </div>
+
+                {message.sender === 'bot' && (
+                  <div className='chat-footer opacity-50 flex gap-3'>
+                    {message.info && (
+                      <img
+                        alt='info'
+                        onClick={() => {
+                          show(1);
+                        }}
+                        title='Show Instructions'
+                        className='w-6 cursor-pointer'
+                        src='data:image/png;base64,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'
+                      />
+                    )}
+                    {message.table && (
+                      <img
+                        alt='Table'
+                        onClick={() => {
+                          show(2);
+                        }}
+                        title='Show Table'
+                        className='w-6 cursor-pointer'
+                        src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAeVJREFUeF7tm88uQ1EQxn8lYYF3sPb3GUQsWPvzACSIIBGvQRHCggfAnkTEM1iUtWdo2RAhk/QmDXo7bYlMz9ftnZ7M991v5syZe6ZA4r9C4vgRAVLAdwZGgSVgEhgE+oKT9AI8AbfAKVCqxVMbAr1AEVgGuoKDruf+O3ACbAGvZpQRYOCvgYkOBf4V1h0wbSRkBBwDK4mAz2AeAutGgMX8fQfLPi8cxo2AfWAjsbefwS0aAQ/AUKIElIyACtCfKAEVI+CjAXhvtTgHXOSsZc8WnESfA/M5tvbs0rlWLj4RIAUoBJQDlAS1C+QzkPw26NxuY5p56oCYyJxeiwBHIeTkMqaZFCAFNC6FY2rb6bVCwBECyRdCIsAZTuoIqSWmnqCaouoKd2Jb3LkJxDRTJeioBGO+WqfXUoAUoONwwy9DzmiKaaYc4MgB/3Ectm//synfDxABUoBCQDlASVC7QH0GfvWaXBkYiFnHte11WVdlgT1gs20uYy6wawoYqV6X746JoWWvbXpkLKvzbXhgreWlYv7xwJSfEdADXFUHpWLCac5rG6CaAd5qT3pGwg6wCnRqOJjsj4BtA2+c/XTUHQYWganq2Fz0WYLn6tjcDXAGPNaKxXvWb05ggaxFQKCX9SeuJq+AT0EKyxIwCSIfAAAAAElFTkSuQmCC'
+                      />
+                    )}
+                    {message.tree && (
+                      <img
+                        alt='Tree'
+                        title='Show Tree'
+                        className='w-6 cursor-pointer'
+                        src='data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgaGVpZ2h0PSIzMiIgaWQ9Imljb24iIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxzdHlsZT4uY2xzLTF7ZmlsbDpub25lO308L3N0eWxlPjwvZGVmcz48dGl0bGUvPjxwYXRoIGQ9Ik0yMyw5aDZhMiwyLDAsMCwwLDItMlYzYTIsMiwwLDAsMC0yLTJIMjNhMiwyLDAsMCwwLTIsMlY0SDExVjNBMiwyLDAsMCwwLDksMUgzQTIsMiwwLDAsMCwxLDNWN0EyLDIsMCwwLDAsMyw5SDlhMiwyLDAsMCwwLDItMlY2aDRWMjZhMi4wMDIzLDIuMDAyMywwLDAsMCwyLDJoNHYxYTIsMiwwLDAsMCwyLDJoNmEyLDIsMCwwLDAsMi0yVjI1YTIsMiwwLDAsMC0yLTJIMjNhMiwyLDAsMCwwLTIsMnYxSDE3VjE3aDR2MWEyLDIsMCwwLDAsMiwyaDZhMiwyLDAsMCwwLDItMlYxNGEyLDIsMCwwLDAtMi0ySDIzYTIsMiwwLDAsMC0yLDJ2MUgxN1Y2aDRWN0EyLDIsMCwwLDAsMjMsOVptMC02aDZWN0gyM1pNOSw3SDNWM0g5Wk0yMywyNWg2djRIMjNabTAtMTFoNnY0SDIzWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAwLjAwNDkpIi8+PHJlY3QgY2xhc3M9ImNscy0xIiBkYXRhLW5hbWU9IiZsdDtUcmFuc3BhcmVudCBSZWN0YW5nbGUmZ3Q7IiBoZWlnaHQ9IjMyIiBpZD0iX1RyYW5zcGFyZW50X1JlY3RhbmdsZV8iIHdpZHRoPSIzMiIvPjwvc3ZnPg=='
+                      />
+                    )}
+                    {message.back && (
+                      <img
+                        alt='Back'
+                        title='Go Back to this configuration'
+                        className='w-5 cursor-pointer'
+                        src='data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgaGVpZ2h0PSIyMHB4IiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCAxNiAyMCIgd2lkdGg9IjE2cHgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6c2tldGNoPSJodHRwOi8vd3d3LmJvaGVtaWFuY29kaW5nLmNvbS9za2V0Y2gvbnMiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48dGl0bGUvPjxkZXNjLz48ZGVmcy8+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBpZD0iUGFnZS0xIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSI+PGcgZmlsbD0iIzAwMDAwMCIgaWQ9IkNvcmUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00MjQuMDAwMDAwLCAtNDYzLjAwMDAwMCkiPjxnIGlkPSJ1bmRvIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MjQuMDAwMDAwLCA0NjQuMDAwMDAwKSI+PHBhdGggZD0iTTgsMyBMOCwtMC41IEwzLDQuNSBMOCw5LjUgTDgsNSBDMTEuMyw1IDE0LDcuNyAxNCwxMSBDMTQsMTQuMyAxMS4zLDE3IDgsMTcgQzQuNywxNyAyLDE0LjMgMiwxMSBMMCwxMSBDMCwxNS40IDMuNiwxOSA4LDE5IEMxMi40LDE5IDE2LDE1LjQgMTYsMTEgQzE2LDYuNiAxMi40LDMgOCwzIEw4LDMgWiIgaWQ9IlNoYXBlIi8+PC9nPjwvZz48L2c+PC9zdmc+'
+                      />
+                    )}
+                  </div>
+                )}
               </div>
             ))}
+            {loading && (
+              <div key={0} className='chat chat-start'>
+                <div className='chat-image avatar'>
+                  <div className='w-10 rounded-full'>
+                    <img alt='bot' src='images/bot.png' />
+                  </div>
+                </div>
+                <div className='chat-bubble'>Loading ...</div>
+              </div>
+            )}
           </div>
 
           {/* Input Bar */}
@@ -81,9 +270,11 @@ const HomePage = () => {
             />
             <button
               onClick={handleSendMessage}
-              className='px-4 py-2 bg-blue-500 text-white rounded-r-md'
+              className={`px-4 py-2 bg-blue-500 text-white rounded-r-md cursor-pointer ${
+                loading ? 'btn-disabled' : ''
+              }`}
             >
-              Send
+              {loading ? 'Processing ...' : 'Send'}
             </button>
           </div>
         </div>

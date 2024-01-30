@@ -6,6 +6,8 @@ const initialState = {
   messages: [],
   columns: [],
   nodes: [],
+  table: [],
+  instructions: {},
 };
 
 export const dtSlice = createSlice({
@@ -18,6 +20,8 @@ export const dtSlice = createSlice({
       state.messages = action.payload.messages;
       state.columns = action.payload.columns;
       state.nodes = action.payload.nodes;
+      state.table = action.payload.table;
+      state.instructions = action.payload.instructions;
     },
     setDtfile: (state, action) => {
       state.dtfile = action.payload.dtfile;
@@ -28,11 +32,23 @@ export const dtSlice = createSlice({
     setMessages: (state, action) => {
       state.messages = action.payload.messages;
     },
+    addMessage: (state, action) => {
+      state.messages = [...state.messages, action.payload];
+    },
     setColumns: (state, action) => {
       state.columns = action.payload.columns;
     },
     setNodes: (state, action) => {
       state.nodes = action.payload.nodes;
+    },
+    setTable: (state, action) => {
+      state.table = action.payload.table;
+    },
+    setInstructions: (state, action) => {
+      state.instructions = action.payload.instructions;
+    },
+    updateInstructions: (state, action) => {
+      state.instructions = { ...state.instructions, ...action.payload };
     },
     setReset: (state) => {
       state.dtfile = null;
@@ -40,6 +56,8 @@ export const dtSlice = createSlice({
       state.messages = [];
       state.columns = [];
       state.nodes = [];
+      state.table = [];
+      state.instructions = {};
     },
   },
 });
@@ -51,6 +69,10 @@ export const {
   setMessages,
   setColumns,
   setNodes,
+  setTable,
   setReset,
+  setInstructions,
+  addMessage,
+  updateInstructions,
 } = dtSlice.actions;
 export default dtSlice.reducer;

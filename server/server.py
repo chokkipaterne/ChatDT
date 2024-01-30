@@ -47,12 +47,17 @@ def upload_file(uploaded_file: UploadFile = File(...)):
     shuffle_new_filename = f"uploads/shuffle_{new_filename}"
     df.to_csv(shuffle_new_filename, index=False)
 
+    endx = 50 if len(df) > 50 else len(df)
+    table = df.iloc[0:endx].to_dict(orient="records")
+
     return {
         'file': new_filename,
         'filename': uploaded_file.filename,
-        'columns': columns
+        'columns': columns,
+        'table':table
     }
 
+"""
 @api.get("/getdata")
 async def get_data(filename: str = Form(...), page: int = Form(1, gt=0), per_page: int = Form(10, gt=0)):
     try:
@@ -76,6 +81,7 @@ async def get_data(filename: str = Form(...), page: int = Form(1, gt=0), per_pag
     paginated_data = df.iloc[start_idx:end_idx].to_dict(orient="records")
 
     return paginated_data
+"""
 
 @api.post("/processdata")
 async def process_data(filename: str = Form(...), train_size: float = Form(0.7, gt=0), constraints: str = Form(...)):

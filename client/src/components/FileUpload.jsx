@@ -52,13 +52,36 @@ const FileUpload = () => {
           const savedFile = await savedFileResponse.json();
           console.log(savedFile);
           if (savedFile) {
+            const initialMessages = [
+              {
+                text: 'I am ChatDT, an interactive chatbot that can help you to easily create a decision tree. Click on "i" to get more instructions about the commands to use to interact with me.',
+                sender: 'bot',
+                info: false,
+                table: false,
+                tree: false,
+                back: null,
+              },
+              {
+                text:
+                  'File ' +
+                  savedFile.filename +
+                  ' has been uploaded successfully.',
+                sender: 'bot',
+                info: true,
+                table: true,
+                tree: false,
+                back: 'reset',
+              },
+            ];
             dispatch(
               setInit({
                 dtfile: savedFile.file,
                 filename: savedFile.filename,
                 columns: savedFile.columns,
-                messages: [],
+                table: savedFile.table,
+                messages: initialMessages,
                 nodes: [],
+                instructions: {},
               })
             );
             navigate('/home');
