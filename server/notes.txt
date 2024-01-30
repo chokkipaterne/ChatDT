@@ -5,9 +5,16 @@ uvicorn server:app --reload
 //Access link
 http://127.0.0.1:8000/docs
 
+//Solve issues of gitignore
+Be sure that your actual repo is the latest version and without ongoing changes
+Edit .gitignore as you wish
+git rm -r --cached . (remove all files)
+git add . (re-add all files according to gitignore)
+
 //Graph
 https://www.npmjs.com/package/react-d3-tree
-
 https://github.com/singular1ty94/react-decisiontree
 
 npx create-react-app client
+cd client
+npm i react-redux @reduxjs/toolkit redux-persist react-dropzone dotenv formik yup react-router-dom@6 @mui/material @emotion/react @emotion/styled @mui/icons-material

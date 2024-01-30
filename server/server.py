@@ -1,21 +1,34 @@
 import shutil
 import time
 import pandas as pd
-from fastapi import FastAPI, UploadFile, File, status, Query, HTTPException
+from fastapi import FastAPI, APIRouter, UploadFile, File, status, Query, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import HTTPException
 import os
 from utils import generate_tree
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+app = FastAPI(
+    title="ChatDT",
+    description="The API for the ChatDT Application",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 
 app.mount('/uploads', StaticFiles(directory='uploads'),'uploads')
 
+api = APIRouter(prefix='/api', tags=['API'])
+
 #iris_20240128204554.csv
-@app.post('/upload')
+@api.post('/upload')
 def upload_file(uploaded_file: UploadFile = File(...)):
     if uploaded_file.content_type != 'text/csv':
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wow, That's not allowed")
@@ -37,7 +50,7 @@ def upload_file(uploaded_file: UploadFile = File(...)):
         'path': path,
     }
 
-@app.get("/data")
+@api.get("/data")
 async def get_data(filename: str, page: int = Query(1, gt=0), per_page: int = Query(10, gt=0)):
     try:
         # Read the CSV file into a Pandas DataFrame
@@ -61,7 +74,7 @@ async def get_data(filename: str, page: int = Query(1, gt=0), per_page: int = Qu
 
     return paginated_data
 
-@app.post("/process_data")
+@api.post("/process_data")
 async def process_data(filename: str, train_size: float = 0.7, constraints: dict = {}):
     try:
         # Call the main function with provided parameters
@@ -72,3 +85,5 @@ async def process_data(filename: str, train_size: float = 0.7, constraints: dict
         )
 
     return result
+
+app.include_router(api)

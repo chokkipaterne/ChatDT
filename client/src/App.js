@@ -1,24 +1,28 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
+import HomePage from 'pages/HomePage';
+import AboutPage from 'pages/AboutPage';
+import ErrorPage from 'pages/ErrorPage';
+import Layout from 'components/Layout';
+import { useSelector } from 'react-redux';
+import FilePage from 'pages/FilePage';
 
 function App() {
+  const hasFile = Boolean(useSelector((state) => state.dtfile));
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Layout>
+        <Routes>
+          <Route path='/' element={<FilePage />} />
+          <Route
+            path='/home'
+            element={hasFile ? <HomePage /> : <Navigate to='/' />}
+          />
+          <Route path='/about' element={<AboutPage />} />
+          <Route path='*' element={<ErrorPage />} />
+        </Routes>
+      </Layout>
+    </BrowserRouter>
   );
 }
 
