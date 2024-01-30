@@ -13,7 +13,10 @@ function App() {
     <BrowserRouter>
       <Layout>
         <Routes>
-          <Route path='/' element={<FilePage />} />
+          <Route
+            path='/'
+            element={!hasFile ? <FilePage /> : <Navigate to='/home' />}
+          />
           <Route
             path='/home'
             element={hasFile ? <HomePage /> : <Navigate to='/' />}

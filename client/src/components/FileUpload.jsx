@@ -1,19 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { setInit } from 'state';
 
 const FileUpload = () => {
   const [file, setFile] = useState(null);
   const [disabled, setDisabled] = useState(false);
-  const dtfile = useSelector((state) => state.dtfile);
-
-  useEffect(() => {
-    if (dtfile !== null) {
-      navigate('/home');
-    }
-  }, [dtfile]);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -45,45 +38,51 @@ const FileUpload = () => {
     borderColor: '#ff1744',
   };
 
-  const onDrop = useCallback((acceptedFiles) => {
-    const submitFile = async (file) => {
-      const formData = new FormData();
-      formData.append('uploaded_file', file);
-      try {
-        const endpoint = `${process.env.REACT_APP_API_URL}upload`;
-        const savedFileResponse = await fetch(endpoint, {
-          method: 'POST',
-          body: formData,
-        });
-        const savedFile = await savedFileResponse.json();
-        console.log(savedFile);
-        if (savedFile) {
-          dispatch(
-            setInit({
-              dtfile: savedFile.file,
-              messages: [],
-            })
-          );
-          navigate('/home');
-          console.log('File uploaded successfully');
-        } else {
+  const onDrop = useCallback(
+    (acceptedFiles) => {
+      const submitFile = async (file) => {
+        const formData = new FormData();
+        formData.append('uploaded_file', file);
+        try {
+          const endpoint = `${process.env.REACT_APP_API_URL}uploadfile`;
+          const savedFileResponse = await fetch(endpoint, {
+            method: 'POST',
+            body: formData,
+          });
+          const savedFile = await savedFileResponse.json();
+          console.log(savedFile);
+          if (savedFile) {
+            dispatch(
+              setInit({
+                dtfile: savedFile.file,
+                filename: savedFile.filename,
+                columns: savedFile.columns,
+                messages: [],
+                nodes: [],
+              })
+            );
+            navigate('/home');
+            console.log('File uploaded successfully');
+          } else {
+            setFile(null);
+            setDisabled(false);
+            console.error('Failed to upload file');
+          }
+        } catch (error) {
           setFile(null);
           setDisabled(false);
-          console.error('Failed to upload file');
+          console.log(error);
         }
-      } catch (error) {
-        setFile(null);
-        setDisabled(false);
-        console.log(error);
-      }
-    };
+      };
 
-    acceptedFiles.forEach(async (file) => {
-      setFile(file);
-      setDisabled(true);
-      await submitFile(file);
-    });
-  }, []);
+      acceptedFiles.forEach(async (file) => {
+        setFile(file);
+        setDisabled(true);
+        await submitFile(file);
+      });
+    },
+    [dispatch, navigate]
+  );
 
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
     useDropzone({

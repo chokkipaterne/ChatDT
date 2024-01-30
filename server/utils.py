@@ -8,13 +8,32 @@ import math
 import json
 import random
 import string
+import os
+import shutil
 
+def remove_files(filename):
+    if os.path.exists("uploads/"+filename):
+        os.remove("uploads/"+filename)
+    if os.path.exists("uploads/shuffle_"+filename):
+        os.remove("uploads/shuffle_"+filename)
+
+    folder_path = "responses/"+filename.replace('.csv', '')
+    if os.path.exists(folder_path):
+        shutil.rmtree(folder_path)
+    return {'remove': 1}
+    
 def generate_tree(filename, train_size=0.7, constraints={}):
     random_code = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(10)])
-    response_filename = f"{random_code}_{filename}"
-    response_filename = response_filename.replace(".csv", ".json")
+    response_filename = f"{filename.replace('.csv', '')}/{random_code}.json"
 
-    response = {"response_filename":response_filename, "constraints":constraints, "filename":filename, "train_size":train_size, "accuracy":"", "string_tree":"", "dict_tree": ""}
+    response = {"response_filename":response_filename, 
+                "constraints":constraints, 
+                "filename":filename, 
+                "train_size":train_size, 
+                "accuracy":"", 
+                "string_tree":"", 
+                "dict_tree": ""
+                }
     
     # 1. Load dataset.
     shuffle_filename = f"uploads/shuffle_{filename}"
@@ -79,6 +98,11 @@ def generate_tree(filename, train_size=0.7, constraints={}):
     response["dict_tree"] = dict_tree
 
     myrep = str(response).replace("'",'"')
+
+    path = "responses/"+filename.replace('.csv', '')
+    isExist = os.path.exists(path)
+    if not isExist:
+        os.makedirs(path)
 
     f = open("responses/"+response_filename, 'w')
     f.write(myrep)

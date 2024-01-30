@@ -1,12 +1,13 @@
 import shutil
 import time
 import pandas as pd
-from fastapi import FastAPI, APIRouter, UploadFile, File, status, Query, HTTPException
+from fastapi import FastAPI, APIRouter, UploadFile, File, Body, Form, status, Query, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import HTTPException
 import os
-from utils import generate_tree
+from utils import generate_tree, remove_files
 from fastapi.middleware.cors import CORSMiddleware
+import json
 
 app = FastAPI(
     title="ChatDT",
@@ -28,7 +29,7 @@ app.mount('/uploads', StaticFiles(directory='uploads'),'uploads')
 api = APIRouter(prefix='/api', tags=['API'])
 
 #iris_20240128204554.csv
-@api.post('/upload')
+@api.post('/uploadfile')
 def upload_file(uploaded_file: UploadFile = File(...)):
     if uploaded_file.content_type != 'text/csv':
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wow, That's not allowed")
@@ -36,22 +37,24 @@ def upload_file(uploaded_file: UploadFile = File(...)):
     time_str = time.strftime('%Y%m%d%H%M%S')
     new_filename =  "{}_{}.csv".format(os.path.splitext(uploaded_file.filename)[0], time_str)
     path = f"uploads/{new_filename}"
-    
+
     with open(path, 'w+b') as file:
         shutil.copyfileobj(uploaded_file.file, file)
 
     df = pd.read_csv(path)
     df = df.sample(frac=1).reset_index(drop=True)
+    columns = list(df.columns)
     shuffle_new_filename = f"uploads/shuffle_{new_filename}"
     df.to_csv(shuffle_new_filename, index=False)
 
     return {
         'file': new_filename,
-        'path': path,
+        'filename': uploaded_file.filename,
+        'columns': columns
     }
 
-@api.get("/data")
-async def get_data(filename: str, page: int = Query(1, gt=0), per_page: int = Query(10, gt=0)):
+@api.get("/getdata")
+async def get_data(filename: str = Form(...), page: int = Form(1, gt=0), per_page: int = Form(10, gt=0)):
     try:
         # Read the CSV file into a Pandas DataFrame
         filename = f"uploads/shuffle_{filename}"
@@ -74,16 +77,30 @@ async def get_data(filename: str, page: int = Query(1, gt=0), per_page: int = Qu
 
     return paginated_data
 
-@api.post("/process_data")
-async def process_data(filename: str, train_size: float = 0.7, constraints: dict = {}):
+@api.post("/processdata")
+async def process_data(filename: str = Form(...), train_size: float = Form(0.7, gt=0), constraints: str = Form(...)):
     try:
         # Call the main function with provided parameters
+        constraints = json.loads(constraints)
         result = generate_tree(filename, train_size, constraints)
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error processing data: {str(e)}"
         )
 
+    return result
+
+@api.post("/removedata")
+async def remove_data(filename: str = Form(...)):
+    try:
+        # Call the main function with provided parameters
+        print(filename)
+        result = remove_files(filename)
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error processing data: {str(e)}"
+        )
     return result
 
 app.include_router(api)
