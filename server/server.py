@@ -84,11 +84,11 @@ async def get_data(filename: str = Form(...), page: int = Form(1, gt=0), per_pag
 """
 
 @api.post("/processdata")
-async def process_data(filename: str = Form(...), train_size: float = Form(0.7, gt=0), constraints: str = Form(...)):
+async def process_data(filename: str = Form(...), constraints: str = Form(...)):
     try:
         # Call the main function with provided parameters
         constraints = json.loads(constraints)
-        result = generate_tree(filename, train_size, constraints)
+        result = generate_tree(filename, constraints)
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error processing data: {str(e)}"

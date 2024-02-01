@@ -22,17 +22,21 @@ def remove_files(filename):
         shutil.rmtree(folder_path)
     return {'remove': 1}
     
-def generate_tree(filename, train_size=0.7, constraints={}):
+def generate_tree(filename, constraints={}):
     random_code = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(10)])
     response_filename = f"{filename.replace('.csv', '')}/{random_code}.json"
+
+    train_size = 0.7
+    if "train_size" in constraints:
+        train_size = constraints["train_size"]
 
     response = {"response_filename":response_filename, 
                 "constraints":constraints, 
                 "filename":filename, 
-                "train_size":train_size, 
                 "accuracy":"", 
                 "string_tree":"", 
-                "dict_tree": ""
+                "dict_tree": "",
+                "output_tree":""
                 }
     
     # 1. Load dataset.
@@ -97,6 +101,9 @@ def generate_tree(filename, train_size=0.7, constraints={}):
     #response["dict_tree"] = json.dumps(dict_tree, indent = 4)
     response["dict_tree"] = dict_tree
 
+    output_tree = clf.generate_output_dict(features, target_names)
+    response["output_tree"] = output_tree
+
     myrep = str(response).replace("'",'"')
 
     path = "responses/"+filename.replace('.csv', '')
@@ -108,6 +115,12 @@ def generate_tree(filename, train_size=0.7, constraints={}):
     f.write(myrep)
     f.close()
 
-    return myrep
+    return_rep = {'response_filename':response_filename, 
+                    'constraints':constraints, 
+                    'filename':filename, 
+                    'accuracy':float(format(accuracy, ".2f")), 
+                    'output_tree':output_tree}
+
+    return return_rep
 
 #rep = generate_tree("iris_20240128204554.csv")

@@ -70,7 +70,7 @@ const FileUpload = () => {
                 info: true,
                 table: true,
                 tree: false,
-                back: 'reset',
+                back: null,
               },
             ];
             dispatch(
@@ -143,7 +143,7 @@ const FileUpload = () => {
             {(!file || !disabled) && (
               <>
                 <p>Drag and drop your file here, or click to select file</p>
-                <em>(Only *.csv files will be accepted)</em>
+                <em>(Only *.csv file will be accepted)</em>
               </>
             )}
           </div>

@@ -157,6 +157,27 @@ class DecisionTreeClassifier:
             dict['left'] = self.generate_dict(dict['left'])
             dict['right'] = self.generate_dict(dict['right'])
         return dict
+
+    def generate_output_dict(self, feature_names, class_names, node=None):
+        if not node:
+            node = self.tree_
+            dict = node.__dict__
+        else:
+            dict = node
+
+        output = {}
+        if dict['left']:
+            threshold = str(format(dict['threshold'], ".2f"))
+            output['name'] = feature_names[dict['feature_index']] + "<" + threshold
+            gini = float(format(dict['gini'], ".2f"))
+            output['attributes'] = {
+                'num_samples': dict['num_samples'],
+                'gini': gini
+            }
+            output['children'] = [self.generate_output_dict(feature_names, class_names, dict['left']), self.generate_output_dict(feature_names, class_names, dict['right'])]
+        else:
+            output['name'] = class_names[dict['predicted_class']]
+        return output
     
     def print_tree(self, feature_names, class_names, tree=None, indent=" "):
         ''' function to print the tree '''
@@ -165,15 +186,14 @@ class DecisionTreeClassifier:
             tree = self.tree_
         dict = tree.__dict__
             #dict = {k:dict[k] for k in needed_keys}
-        
         if not dict['right']:
             print(class_names[dict['predicted_class']])
         else:
-            print(feature_names[dict['feature_index']], "<=", dict['threshold'], "?", dict['gini'])
+            print(feature_names[dict['feature_index']], "<", dict['threshold'], "?", dict['gini'])
             print("%sleft:" % (indent), end="")
-            self.print_tree(feature_names, class_names, dict['left'], indent + indent)
+            self.print_tree(feature_names, class_names, dict['left'], indent + " ")
             print("%sright:" % (indent), end="")
-            self.print_tree(feature_names, class_names, dict['right'], indent + indent)
+            self.print_tree(feature_names, class_names, dict['right'], indent + " ")
 
     def string_tree(self, feature_names, class_names, tree=None, indent=" "):
         ''' function to print the tree '''
@@ -184,9 +204,9 @@ class DecisionTreeClassifier:
         if not dict['right']:
             return class_names[dict['predicted_class']] + "\n"
         else:
-            return feature_names[dict['feature_index']]+ "<="+ str(float(dict['threshold']))+ "?"+ str(float(dict['gini']))+ "\n" \
+            return feature_names[dict['feature_index']]+ "<"+ str(float(dict['threshold']))+ "?"+ str(float(dict['gini']))+ "\n" \
             + str("%sleft:" % (indent)) \
-            + self.string_tree(feature_names, class_names, dict['left'], indent + indent) \
+            + self.string_tree(feature_names, class_names, dict['left'], indent + " ") \
             + str("%sright:" % (indent)) \
-            + self.string_tree(feature_names, class_names, dict['right'], indent + indent)
+            + self.string_tree(feature_names, class_names, dict['right'], indent + " ")
         

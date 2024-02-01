@@ -1,16 +1,29 @@
 import Instructions from 'components/Instructions';
 import TableComponent from 'components/TableComponent';
-import { useEffect, useState } from 'react';
+import DecisionTree from 'components/DecisionTree';
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { addMessage, updateInstructions } from 'state';
+import { addMessage, setInstructions, updateInstructions } from 'state';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const divRef = useRef(null);
+
+  const scrollToBottom = (scrollDelay = 300) => {
+    const delayedScroll = setTimeout(() => {
+      if (divRef.current) {
+        //divRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        divRef.current.scrollTop = divRef.current.scrollHeight;
+      }
+    }, scrollDelay);
+    return () => clearTimeout(delayedScroll);
+  };
+
   const dtfile = useSelector((state) => state.dtfile);
   const messages = useSelector((state) => state.messages);
-  //const instructions = useSelector((state) => state.instructions);
+  const instructions = useSelector((state) => state.instructions);
   const columns = useSelector((state) => state.columns);
 
   useEffect(() => {
@@ -24,6 +37,12 @@ const HomePage = () => {
   const [sidebar, setSidebar] = useState(false);
   const [contentSidebar, setContentSidebar] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [treeData, setTreeData] = useState({});
+
+  useEffect(() => {
+    show(2);
+    scrollToBottom();
+  }, []);
 
   const instructionsArray = [
     'set features to',
@@ -31,6 +50,7 @@ const HomePage = () => {
     'set max depth to',
     'set min samples split to',
     'generate',
+    'set training data size to',
   ];
 
   const getNumber = (str) => {
@@ -49,7 +69,10 @@ const HomePage = () => {
     let listCols = [];
     for (let i = 0; i < myArray.length; i++) {
       for (let j = 0; j < columns.length; j++) {
-        if (myArray[i].trim() !== '' && myArray[i].trim() === columns[j]) {
+        if (
+          myArray[i].trim() !== '' &&
+          myArray[i].trim().toLowerCase() === columns[j].toLowerCase()
+        ) {
           listCols = [...listCols, columns[j]];
           break;
         }
@@ -59,7 +82,48 @@ const HomePage = () => {
     return listCols;
   };
 
-  const handleSendMessage = () => {
+  const generateTree = async () => {
+    const formData = new FormData();
+    formData.append('constraints', JSON.stringify(instructions));
+    formData.append('filename', dtfile);
+    try {
+      const endpoint = `${process.env.REACT_APP_API_URL}processdata`;
+      const generateTreeResponse = await fetch(endpoint, {
+        method: 'POST',
+        body: formData,
+      });
+      const generateTree = await generateTreeResponse.json();
+      console.log(generateTree);
+      setLoading(false);
+      if (generateTree) {
+        dispatch(
+          addMessage({
+            text:
+              'Decision tree generated with an accuracy of ' +
+              parseFloat(generateTree.accuracy) * 100 +
+              '%',
+            sender: 'bot',
+            info: true,
+            table: true,
+            tree: true,
+            back: generateTree.response_filename,
+            constraints: generateTree.constraints,
+            output: generateTree.output_tree,
+            accuracy: generateTree.accuracy,
+          })
+        );
+        displayTree(generateTree.output_tree);
+        scrollToBottom();
+        console.log('Tree generated successfully');
+      } else {
+        console.error('Failed to generate tree');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleSendMessage = async () => {
     if (inputValue.trim() !== '') {
       const value = inputValue.trim();
       dispatch(
@@ -74,11 +138,12 @@ const HomePage = () => {
       );
       let findMatch = false;
       for (let i = 0; i < instructionsArray.length; i++) {
-        if (value.includes(instructionsArray[i])) {
+        if (value.toLowerCase().includes(instructionsArray[i].toLowerCase())) {
           const str = value.replace(instructionsArray[i], '');
-          if (i === instructionsArray.length - 1) {
+          if (i === 4) {
             findMatch = true;
             setLoading(true);
+            await generateTree();
           } else if (i === 0) {
             //features
             const cols = getColumns(str);
@@ -123,6 +188,17 @@ const HomePage = () => {
                 })
               );
             }
+          } else if (i === 5) {
+            //train_size
+            const num = getNumber(str);
+            if (num) {
+              findMatch = true;
+              dispatch(
+                updateInstructions({
+                  train_size: num,
+                })
+              );
+            }
           }
           break;
         }
@@ -139,19 +215,85 @@ const HomePage = () => {
           })
         );
       }
+      scrollToBottom();
       setInputValue('');
       //console.log(messages);
     }
   };
 
-  /*const displayTree = () => {
+  const displayTree = (tree) => {
     //info: 1, table: 2, tree: 3, back: 4 ... 'reset',
+    setTreeData(tree);
     setSidebar(true);
     setContentSidebar(3);
-  };*/
+  };
   const show = (value) => {
     setSidebar(true);
     setContentSidebar(value);
+  };
+  const generateFromInstructions = (message) => {
+    const instructs = message.constraints;
+    dispatch(
+      addMessage({
+        text: 'Go back to the following configuration',
+        sender: 'user',
+        info: false,
+        table: false,
+        tree: false,
+        back: null,
+      })
+    );
+    for (const [key, value] of Object.entries(instructs)) {
+      let text = null;
+      if (key === 'features') {
+        text = instructionsArray[0] + ' ' + value.join(',');
+      } else if (key === 'target') {
+        text = instructionsArray[1] + ' ' + value;
+      } else if (key === 'max_depth') {
+        text = instructionsArray[2] + ' ' + value;
+      } else if (key === 'min_samples_split') {
+        text = instructionsArray[3] + ' ' + value;
+      } else if (key === 'train_size') {
+        text = instructionsArray[5] + ' ' + value;
+      }
+      if (text) {
+        dispatch(
+          addMessage({
+            text: text,
+            sender: 'user',
+            info: false,
+            table: false,
+            tree: false,
+            back: null,
+          })
+        );
+      }
+    }
+    let text = 'generate';
+    if (Object.keys(instructs).length === 0) {
+      text = 'generate without any constraints';
+    }
+    dispatch(
+      addMessage({
+        text: text,
+        sender: 'user',
+        info: false,
+        table: false,
+        tree: false,
+        back: null,
+      })
+    );
+    dispatch(addMessage(message));
+    displayTree(message.output);
+    scrollToBottom();
+  };
+  const backInstructions = (message) => {
+    dispatch(
+      setInstructions({
+        instructions: message.constraints,
+      })
+    );
+    generateFromInstructions(message);
   };
 
   return (
@@ -159,7 +301,7 @@ const HomePage = () => {
       <div className='flex h-screen pt-16'>
         {/* Left Sidebar */}
         {sidebar && (
-          <div className='w-2/3 p-4 overflow-y-auto overflow-x-auto shadow-md'>
+          <div className='w-full sm:w-full md:w-3/5 p-4 overflow-y-auto overflow-x-auto shadow-md'>
             <div
               className='avatar placeholder relative top-2 float-right'
               onClick={() => {
@@ -172,13 +314,14 @@ const HomePage = () => {
             </div>
             {contentSidebar === 1 && <Instructions />}
             {contentSidebar === 2 && <TableComponent />}
+            {contentSidebar === 3 && <DecisionTree treeData={treeData} />}
           </div>
         )}
 
         {/* Chat Container */}
         <div className='flex-1 flex flex-col overflow-hidden'>
           {/* Chat Content */}
-          <div className='flex-1 overflow-y-auto p-4'>
+          <div className='flex-1 overflow-y-auto p-4' ref={divRef}>
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -230,6 +373,9 @@ const HomePage = () => {
                     {message.tree && (
                       <img
                         alt='Tree'
+                        onClick={() => {
+                          displayTree(message.output);
+                        }}
                         title='Show Tree'
                         className='w-6 cursor-pointer'
                         src='data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgaGVpZ2h0PSIzMiIgaWQ9Imljb24iIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxzdHlsZT4uY2xzLTF7ZmlsbDpub25lO308L3N0eWxlPjwvZGVmcz48dGl0bGUvPjxwYXRoIGQ9Ik0yMyw5aDZhMiwyLDAsMCwwLDItMlYzYTIsMiwwLDAsMC0yLTJIMjNhMiwyLDAsMCwwLTIsMlY0SDExVjNBMiwyLDAsMCwwLDksMUgzQTIsMiwwLDAsMCwxLDNWN0EyLDIsMCwwLDAsMyw5SDlhMiwyLDAsMCwwLDItMlY2aDRWMjZhMi4wMDIzLDIuMDAyMywwLDAsMCwyLDJoNHYxYTIsMiwwLDAsMCwyLDJoNmEyLDIsMCwwLDAsMi0yVjI1YTIsMiwwLDAsMC0yLTJIMjNhMiwyLDAsMCwwLTIsMnYxSDE3VjE3aDR2MWEyLDIsMCwwLDAsMiwyaDZhMiwyLDAsMCwwLDItMlYxNGEyLDIsMCwwLDAtMi0ySDIzYTIsMiwwLDAsMC0yLDJ2MUgxN1Y2aDRWN0EyLDIsMCwwLDAsMjMsOVptMC02aDZWN0gyM1pNOSw3SDNWM0g5Wk0yMywyNWg2djRIMjNabTAtMTFoNnY0SDIzWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAwLjAwNDkpIi8+PHJlY3QgY2xhc3M9ImNscy0xIiBkYXRhLW5hbWU9IiZsdDtUcmFuc3BhcmVudCBSZWN0YW5nbGUmZ3Q7IiBoZWlnaHQ9IjMyIiBpZD0iX1RyYW5zcGFyZW50X1JlY3RhbmdsZV8iIHdpZHRoPSIzMiIvPjwvc3ZnPg=='
@@ -238,6 +384,9 @@ const HomePage = () => {
                     {message.back && (
                       <img
                         alt='Back'
+                        onClick={() => {
+                          backInstructions(message);
+                        }}
                         title='Go Back to this configuration'
                         className='w-5 cursor-pointer'
                         src='data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgaGVpZ2h0PSIyMHB4IiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCAxNiAyMCIgd2lkdGg9IjE2cHgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6c2tldGNoPSJodHRwOi8vd3d3LmJvaGVtaWFuY29kaW5nLmNvbS9za2V0Y2gvbnMiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48dGl0bGUvPjxkZXNjLz48ZGVmcy8+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBpZD0iUGFnZS0xIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSI+PGcgZmlsbD0iIzAwMDAwMCIgaWQ9IkNvcmUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00MjQuMDAwMDAwLCAtNDYzLjAwMDAwMCkiPjxnIGlkPSJ1bmRvIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MjQuMDAwMDAwLCA0NjQuMDAwMDAwKSI+PHBhdGggZD0iTTgsMyBMOCwtMC41IEwzLDQuNSBMOCw5LjUgTDgsNSBDMTEuMyw1IDE0LDcuNyAxNCwxMSBDMTQsMTQuMyAxMS4zLDE3IDgsMTcgQzQuNywxNyAyLDE0LjMgMiwxMSBMMCwxMSBDMCwxNS40IDMuNiwxOSA4LDE5IEMxMi40LDE5IDE2LDE1LjQgMTYsMTEgQzE2LDYuNiAxMi40LDMgOCwzIEw4LDMgWiIgaWQ9IlNoYXBlIi8+PC9nPjwvZz48L2c+PC9zdmc+'
