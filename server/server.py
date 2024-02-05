@@ -43,9 +43,14 @@ def upload_file(uploaded_file: UploadFile = File(...)):
 
     df = pd.read_csv(path)
     df = df.sample(frac=1).reset_index(drop=True)
+    df.columns = map(str.lower, df.columns)
+    df.columns = df.columns.str.strip()
+    df.columns = df.columns.str.replace(' ', '_')
+    df.columns = df.columns.str.replace('(', '_')
+    df.columns = df.columns.str.replace(')', '')
     columns = list(df.columns)
     shuffle_new_filename = f"uploads/shuffle_{new_filename}"
-    df.to_csv(shuffle_new_filename, index=False)
+    df.to_csv(shuffle_new_filename, index=False,columns=columns)
 
     endx = 50 if len(df) > 50 else len(df)
     table = df.iloc[0:endx].to_dict(orient="records")
@@ -84,11 +89,11 @@ async def get_data(filename: str = Form(...), page: int = Form(1, gt=0), per_pag
 """
 
 @api.post("/processdata")
-async def process_data(filename: str = Form(...), constraints: str = Form(...)):
+async def process_data(filename: str = Form(...), rep_filename: str = Form(...), constraints: str = Form(...)):
     try:
         # Call the main function with provided parameters
         constraints = json.loads(constraints)
-        result = generate_tree(filename, constraints)
+        result = generate_tree(filename, constraints, rep_filename)
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error processing data: {str(e)}"

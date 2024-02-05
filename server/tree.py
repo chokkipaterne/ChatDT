@@ -14,7 +14,8 @@ class Node:
         self.right = None
         self.color = "#000"
         self.size = 25
-        #self.ref = 0
+        self.ref = 0
+        self.ref_init = 0
 
     def debug(self, feature_names, class_names, show_details):
         """Print an ASCII visualization of the tree."""

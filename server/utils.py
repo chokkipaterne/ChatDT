@@ -21,8 +21,8 @@ def remove_files(filename):
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path)
     return {'remove': 1}
-    
-def generate_tree(filename, constraints={}):
+
+def generate_tree(filename, constraints={}, rep_filename=None):
     random_code = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(10)])
     response_filename = f"{filename.replace('.csv', '')}/{random_code}.json"
 
@@ -81,8 +81,20 @@ def generate_tree(filename, constraints={}):
 
     X, y = dataset.data, dataset.target
 
+    #load prev dataset
+    dict_tree = {}
+    if rep_filename:
+        rep_path = "responses/"+rep_filename
+        isExist = os.path.exists(rep_path)
+        if isExist:
+            f = open(rep_path, "r")
+            data = f.read()
+            data = data.replace("None", '""')
+            data = json.loads(data)
+            dict_tree = data["dict_tree"]
+
     # 2. Fit decision tree.
-    clf = DecisionTreeClassifier(constraints)
+    clf = DecisionTreeClassifier(constraints, features, dict_tree)
     clf.fit(X, y)
 
     # 3. Predict.
@@ -95,7 +107,7 @@ def generate_tree(filename, constraints={}):
 
     string_tree = clf.string_tree(features, target_names)
     response["string_tree"] = string_tree
-    print(string_tree)
+    #print(string_tree)
 
     dict_tree = clf.generate_dict()
     #response["dict_tree"] = json.dumps(dict_tree, indent = 4)
@@ -124,3 +136,16 @@ def generate_tree(filename, constraints={}):
     return return_rep
 
 #rep = generate_tree("iris_20240128204554.csv")
+#rep = load_tree("iris_20240204141257.csv", "FT9H95jQil.json", {})
+#"max_depth":2,"min_samples_split":100, 
+"""constraints = {"nodes_constraints":{
+    0: {"yes": ["sepal.length", "petal.width"], "no":["petal.length"]}
+}}"""
+"""constraints = {"nodes_constraints":{
+    1: {"remove":"y"}
+}}"""
+constraints = {"nodes_constraints":{
+    0: {"no": ["sepal.length", "petal.length"]}
+}}
+rep_filename = "iris_20240204141257/nVhPye9AdA.json"
+rep = generate_tree("iris_20240204141257.csv", constraints, rep_filename)
