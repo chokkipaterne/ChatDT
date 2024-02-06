@@ -92,7 +92,6 @@ def generate_tree(filename, constraints={}, rep_filename=None):
             data = data.replace("None", '""')
             data = json.loads(data)
             dict_tree = data["dict_tree"]
-
     # 2. Fit decision tree.
     clf = DecisionTreeClassifier(constraints, features, dict_tree)
     clf.fit(X, y)
@@ -144,8 +143,9 @@ def generate_tree(filename, constraints={}, rep_filename=None):
 """constraints = {"nodes_constraints":{
     1: {"remove":"y"}
 }}"""
-constraints = {"nodes_constraints":{
+"""constraints = {"nodes_constraints":{
     0: {"no": ["sepal.length", "petal.length"]}
 }}
 rep_filename = "iris_20240204141257/nVhPye9AdA.json"
 rep = generate_tree("iris_20240204141257.csv", constraints, rep_filename)
+"""

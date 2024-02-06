@@ -12,8 +12,6 @@ class Node:
         self.threshold = 0
         self.left = None
         self.right = None
-        self.color = "#000"
-        self.size = 25
         self.ref = 0
         self.ref_init = 0
 

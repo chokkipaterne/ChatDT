@@ -62,6 +62,30 @@ def upload_file(uploaded_file: UploadFile = File(...)):
         'table':table
     }
 
+@api.post('/demo')
+def demo():
+    demo_dataset = "demo_iris.csv"
+    path = f"uploads/shuffle_{demo_dataset}"
+
+    df = pd.read_csv(path)
+    df = df.sample(frac=1).reset_index(drop=True)
+    df.columns = map(str.lower, df.columns)
+    df.columns = df.columns.str.strip()
+    df.columns = df.columns.str.replace(' ', '_')
+    df.columns = df.columns.str.replace('(', '_')
+    df.columns = df.columns.str.replace(')', '')
+    columns = list(df.columns)
+
+    endx = 50 if len(df) > 50 else len(df)
+    table = df.iloc[0:endx].to_dict(orient="records")
+
+    return {
+        'file': demo_dataset,
+        'filename': demo_dataset,
+        'columns': columns,
+        'table':table
+    }
+
 """
 @api.get("/getdata")
 async def get_data(filename: str = Form(...), page: int = Form(1, gt=0), per_page: int = Form(10, gt=0)):
@@ -105,8 +129,11 @@ async def process_data(filename: str = Form(...), rep_filename: str = Form(...),
 async def remove_data(filename: str = Form(...)):
     try:
         # Call the main function with provided parameters
-        print(filename)
-        result = remove_files(filename)
+        demo_dataset = "demo_iris.csv"
+        if(filename==demo_dataset) :
+            result = {'remove': 1}
+        else:
+            result = remove_files(filename)
         return result
     except Exception as e:
         raise HTTPException(

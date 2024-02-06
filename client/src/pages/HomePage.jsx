@@ -4,7 +4,14 @@ import DecisionTree from 'components/DecisionTree';
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { addMessage, setInstructions, updateInstructions } from 'state';
+import {
+  addMessage,
+  setInstructions,
+  updateInstructions,
+  updateTreeLayout,
+  setHasTree,
+  setResponseFilename,
+} from 'state';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -25,6 +32,7 @@ const HomePage = () => {
   const messages = useSelector((state) => state.messages);
   const instructions = useSelector((state) => state.instructions);
   const columns = useSelector((state) => state.columns);
+  const response_filename = useSelector((state) => state.response_filename);
 
   useEffect(() => {
     if (dtfile === null) {
@@ -51,6 +59,16 @@ const HomePage = () => {
     'set min samples split to',
     'generate',
     'set training data size to',
+    'with a threshold of',
+    'one of the following features',
+    'any feature except the following',
+    'remove tree from node',
+    'set root node color to',
+    'set root node size to',
+    'set branch node color to',
+    'set branch node size to',
+    'set leaf node color to',
+    'set leaf node size to',
   ];
 
   const getNumber = (str) => {
@@ -86,6 +104,8 @@ const HomePage = () => {
     const formData = new FormData();
     formData.append('constraints', JSON.stringify(instructions));
     formData.append('filename', dtfile);
+    formData.append('rep_filename', response_filename);
+
     try {
       const endpoint = `${process.env.REACT_APP_API_URL}processdata`;
       const generateTreeResponse = await fetch(endpoint, {
@@ -110,6 +130,16 @@ const HomePage = () => {
             constraints: generateTree.constraints,
             output: generateTree.output_tree,
             accuracy: generateTree.accuracy,
+          })
+        );
+        dispatch(
+          setResponseFilename({
+            response_filename: generateTree.response_filename,
+          })
+        );
+        dispatch(
+          setHasTree({
+            has_tree: true,
           })
         );
         displayTree(generateTree.output_tree);
@@ -139,7 +169,7 @@ const HomePage = () => {
       let findMatch = false;
       for (let i = 0; i < instructionsArray.length; i++) {
         if (value.toLowerCase().includes(instructionsArray[i].toLowerCase())) {
-          const str = value.replace(instructionsArray[i], '');
+          let str = value.replace(instructionsArray[i], '');
           if (i === 4) {
             findMatch = true;
             setLoading(true);
@@ -199,6 +229,183 @@ const HomePage = () => {
                 })
               );
             }
+          } else if (i === 6) {
+            //set node and threshold
+            let parts = value.split(' to ');
+            const node_number = getNumber(parts[0]);
+            let parts2 = parts[1].split('with');
+            const cols = getColumns(parts2[0]);
+            const threshold = getNumber(parts2[1]);
+            if (node_number && threshold && cols.length > 0) {
+              findMatch = true;
+              const instructs = instructions;
+              if (!('nodes_contraints' in instructs)) {
+                instructs.nodes_contraints = {};
+              }
+              if (!(node_number in instructs['nodes_contraints'])) {
+                instructs['nodes_contraints'][node_number] = {};
+              }
+              if (!('yes' in instructs['nodes_contraints'][node_number])) {
+                instructs['nodes_contraints'][node_number]['yes'] = [];
+              }
+              instructs['nodes_contraints'][node_number]['yes'] = [
+                cols[0] + ',' + threshold,
+              ];
+              dispatch(
+                setInstructions({
+                  instructions: instructs,
+                })
+              );
+            }
+          } else if (i === 7) {
+            //set node and features
+            let parts = value.split(' to ');
+            const node_number = getNumber(parts[0]);
+            let parts2 = parts[1].split('features:');
+            const cols = getColumns(parts2[1]);
+            if (node_number && cols.length > 0) {
+              findMatch = true;
+              const instructs = instructions;
+              if (!('nodes_contraints' in instructs)) {
+                instructs.nodes_contraints = {};
+              }
+              if (!(node_number in instructs['nodes_contraints'])) {
+                instructs['nodes_contraints'][node_number] = {};
+              }
+              if (!('yes' in instructs['nodes_contraints'][node_number])) {
+                instructs['nodes_contraints'][node_number]['yes'] = [];
+              }
+              instructs['nodes_contraints'][node_number]['yes'] = cols;
+              dispatch(
+                setInstructions({
+                  instructions: instructs,
+                })
+              );
+            }
+          } else if (i === 8) {
+            //set node and except features
+            let parts = value.split(' to ');
+            const node_number = getNumber(parts[0]);
+            let parts2 = parts[1].split('following:');
+            const cols = getColumns(parts2[1]);
+            if (node_number && cols.length > 0) {
+              findMatch = true;
+              const instructs = instructions;
+              if (!('nodes_contraints' in instructs)) {
+                instructs.nodes_contraints = {};
+              }
+              if (!(node_number in instructs['nodes_contraints'])) {
+                instructs['nodes_contraints'][node_number] = {};
+              }
+              if (!('no' in instructs['nodes_contraints'][node_number])) {
+                instructs['nodes_contraints'][node_number]['no'] = [];
+              }
+              instructs['nodes_contraints'][node_number]['no'] = cols;
+              dispatch(
+                setInstructions({
+                  instructions: instructs,
+                })
+              );
+            }
+          } else if (i === 9) {
+            //remove tree
+            const node_number = getNumber(str);
+            if (node_number) {
+              findMatch = true;
+              const instructs = instructions;
+              if (!('nodes_contraints' in instructs)) {
+                instructs.nodes_contraints = {};
+              }
+              if (!(node_number in instructs['nodes_contraints'])) {
+                instructs['nodes_contraints'][node_number] = {};
+              }
+              if (!('remove' in instructs['nodes_contraints'][node_number])) {
+                instructs['nodes_contraints'][node_number]['remove'] = 'y';
+              }
+              dispatch(
+                setInstructions({
+                  instructions: instructs,
+                })
+              );
+            }
+          } else if (i === 10) {
+            //root node color
+            str = str.trim();
+            if (str) {
+              findMatch = true;
+              dispatch(
+                updateTreeLayout({
+                  root_color: str,
+                })
+              );
+              setSidebar(true);
+              setContentSidebar(3);
+            }
+          } else if (i === 11) {
+            //root node color
+            const num = getNumber(str);
+            if (num) {
+              findMatch = true;
+              dispatch(
+                updateTreeLayout({
+                  root_size: num,
+                })
+              );
+              setSidebar(true);
+              setContentSidebar(3);
+            }
+          } else if (i === 12) {
+            //root branch color
+            str = str.trim();
+            if (str) {
+              findMatch = true;
+              dispatch(
+                updateTreeLayout({
+                  branch_color: str,
+                })
+              );
+              setSidebar(true);
+              setContentSidebar(3);
+            }
+          } else if (i === 13) {
+            //branch node color
+            const num = getNumber(str);
+            if (num) {
+              findMatch = true;
+              dispatch(
+                updateTreeLayout({
+                  branch_size: num,
+                })
+              );
+              setSidebar(true);
+              setContentSidebar(3);
+            }
+          } else if (i === 14) {
+            //root leaf color
+            str = str.trim();
+            if (str) {
+              findMatch = true;
+              dispatch(
+                updateTreeLayout({
+                  leaf_color: str,
+                })
+              );
+              setSidebar(true);
+              setContentSidebar(3);
+            }
+          } else if (i === 15) {
+            //root leaf color
+            const num = getNumber(str);
+            if (num) {
+              findMatch = true;
+              dispatch(
+                updateTreeLayout({
+                  leaf_size: num,
+                })
+              );
+              setSidebar(true);
+              setContentSidebar(3);
+            }
           }
           break;
         }
@@ -255,8 +462,72 @@ const HomePage = () => {
         text = instructionsArray[3] + ' ' + value;
       } else if (key === 'train_size') {
         text = instructionsArray[5] + ' ' + value;
+      } else if (key === 'nodes_contraints') {
+        for (const [num_node, val] of Object.entries(value)) {
+          for (const [k, v] of Object.entries(val)) {
+            if (k === 'remove') {
+              text = instructionsArray[9] + ' ' + num_node;
+            } else if (k === 'no') {
+              text =
+                'set node ' +
+                num_node +
+                ' to any feature except the following: ' +
+                v.join(',');
+            } else if (k === 'yes') {
+              if (v.length > 1) {
+                text =
+                  'set node ' +
+                  num_node +
+                  ' to one of the following features: ' +
+                  v.join(',');
+              } else {
+                let vl = v[0];
+                if (vl.includes(',')) {
+                  const dt = vl.split(',');
+                  text =
+                    'set node ' +
+                    dt[0] +
+                    ' to ' +
+                    dt[1] +
+                    ' with a threshold of ' +
+                    dt[2];
+                } else {
+                  text =
+                    'set node ' +
+                    num_node +
+                    ' to one of the following features: ' +
+                    v.join(',');
+                }
+              }
+            }
+            if (text) {
+              dispatch(
+                addMessage({
+                  text: text,
+                  sender: 'user',
+                  info: false,
+                  table: false,
+                  tree: false,
+                  back: null,
+                })
+              );
+            }
+          }
+        }
+      } else if (key === 'root_color') {
+        text = instructionsArray[10] + ' ' + value;
+      } else if (key === 'root_size') {
+        text = instructionsArray[11] + ' ' + value;
+      } else if (key === 'branch_color') {
+        text = instructionsArray[12] + ' ' + value;
+      } else if (key === 'branch_size') {
+        text = instructionsArray[13] + ' ' + value;
+      } else if (key === 'leaf_color') {
+        text = instructionsArray[14] + ' ' + value;
+      } else if (key === 'leaf_size') {
+        text = instructionsArray[15] + ' ' + value;
       }
-      if (text) {
+      if (text && key !== 'nodes_contraints') {
         dispatch(
           addMessage({
             text: text,
@@ -291,6 +562,11 @@ const HomePage = () => {
     dispatch(
       setInstructions({
         instructions: message.constraints,
+      })
+    );
+    dispatch(
+      setResponseFilename({
+        response_filename: message.back,
       })
     );
     generateFromInstructions(message);

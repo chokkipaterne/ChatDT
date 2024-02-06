@@ -1,13 +1,23 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const init_tree_layout = {
+  root_color: 'red',
+  root_size: 30,
+  branch_color: 'blue',
+  branch_size: 20,
+  leaf_color: 'green',
+  leaf_size: 25,
+};
 const initialState = {
   dtfile: null,
   filename: null,
   messages: [],
   columns: [],
-  nodes: [],
   table: [],
   instructions: {},
+  tree_layout: init_tree_layout,
+  has_tree: false,
+  response_filename: null,
 };
 
 export const dtSlice = createSlice({
@@ -19,9 +29,11 @@ export const dtSlice = createSlice({
       state.filename = action.payload.filename;
       state.messages = action.payload.messages;
       state.columns = action.payload.columns;
-      state.nodes = action.payload.nodes;
       state.table = action.payload.table;
       state.instructions = action.payload.instructions;
+      state.tree_layout = init_tree_layout;
+      state.has_tree = action.payload.has_tree;
+      state.response_filename = null;
     },
     setDtfile: (state, action) => {
       state.dtfile = action.payload.dtfile;
@@ -29,17 +41,23 @@ export const dtSlice = createSlice({
     setFilename: (state, action) => {
       state.filename = action.payload.filename;
     },
+    setResponseFilename: (state, action) => {
+      state.response_filename = action.payload.response_filename;
+    },
     setMessages: (state, action) => {
       state.messages = action.payload.messages;
+    },
+    setTreeLayout: (state, action) => {
+      state.tree_layout = action.payload.tree_layout;
+    },
+    updateTreeLayout: (state, action) => {
+      state.tree_layout = { ...state.tree_layout, ...action.payload };
     },
     addMessage: (state, action) => {
       state.messages = [...state.messages, action.payload];
     },
     setColumns: (state, action) => {
       state.columns = action.payload.columns;
-    },
-    setNodes: (state, action) => {
-      state.nodes = action.payload.nodes;
     },
     setTable: (state, action) => {
       state.table = action.payload.table;
@@ -50,14 +68,19 @@ export const dtSlice = createSlice({
     updateInstructions: (state, action) => {
       state.instructions = { ...state.instructions, ...action.payload };
     },
+    setHasTree: (state, action) => {
+      state.has_tree = action.payload.has_tree;
+    },
     setReset: (state) => {
       state.dtfile = null;
       state.filename = null;
       state.messages = [];
       state.columns = [];
-      state.nodes = [];
       state.table = [];
       state.instructions = {};
+      state.tree_layout = init_tree_layout;
+      state.has_tree = false;
+      state.response_filename = null;
     },
   },
 });
@@ -68,10 +91,13 @@ export const {
   setFilename,
   setMessages,
   setColumns,
-  setNodes,
   setTable,
   setReset,
   setInstructions,
+  setTreeLayout,
+  setHasTree,
+  setResponseFilename,
+  updateTreeLayout,
   addMessage,
   updateInstructions,
 } = dtSlice.actions;

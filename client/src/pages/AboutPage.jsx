@@ -1,6 +1,8 @@
+import Instructions from 'components/Instructions';
+
 const AboutPage = () => {
   return (
-    <div className='pt-5 px-2 max-w-2xl mt-1 text-slate-600 mx-auto'>
+    <div className='pt-5 px-2 max-w-2xl mt-1 text-slate-600 mx-auto pb-4'>
       <div className='card lg:card-side bg-base-100 shadow-xl'>
         <div className='card-body'>
           <h2 className='card-title'>
@@ -14,7 +16,8 @@ const AboutPage = () => {
             conversations. No need for complicated forms or coding – just chat
             and watch your decision tree come to life.
           </p>
-          <br />
+          <Instructions />
+          <p className='text-xl font-semibold'>Contact us</p>
           <p>
             Any issues or suggestions, feel free to{' '}
             <a className='link' href='mailto:cpeterabiola@gmail.com'>

@@ -38,6 +38,61 @@ const FileUpload = () => {
     borderColor: '#ff1744',
   };
 
+  const demoDataset = async () => {
+    const formData = new FormData();
+    try {
+      const endpoint = `${process.env.REACT_APP_API_URL}demo`;
+      const savedFileResponse = await fetch(endpoint, {
+        method: 'POST',
+        body: formData,
+      });
+      const savedFile = await savedFileResponse.json();
+      console.log(savedFile);
+      if (savedFile) {
+        const initialMessages = [
+          {
+            text: 'I am ChatDT, an interactive chatbot that can help you to easily create a decision tree. Click on "i" to get more instructions about the commands to use to interact with me.',
+            sender: 'bot',
+            info: false,
+            table: false,
+            tree: false,
+            back: null,
+          },
+          {
+            text:
+              'File ' + savedFile.filename + ' has been uploaded successfully.',
+            sender: 'bot',
+            info: true,
+            table: true,
+            tree: false,
+            back: null,
+          },
+        ];
+        dispatch(
+          setInit({
+            dtfile: savedFile.file,
+            filename: savedFile.filename,
+            columns: savedFile.columns,
+            table: savedFile.table,
+            messages: initialMessages,
+            instructions: {},
+            has_tree: false,
+          })
+        );
+        navigate('/home');
+        console.log('File uploaded successfully');
+      } else {
+        setFile(null);
+        setDisabled(false);
+        console.error('Failed to upload file');
+      }
+    } catch (error) {
+      setFile(null);
+      setDisabled(false);
+      console.log(error);
+    }
+  };
+
   const onDrop = useCallback(
     (acceptedFiles) => {
       const submitFile = async (file) => {
@@ -80,8 +135,8 @@ const FileUpload = () => {
                 columns: savedFile.columns,
                 table: savedFile.table,
                 messages: initialMessages,
-                nodes: [],
                 instructions: {},
+                has_tree: false,
               })
             );
             navigate('/home');
@@ -136,7 +191,7 @@ const FileUpload = () => {
         <p className='max-w-xl mt-1 text-xl text-slate-600 mx-auto px-1'>
           Start by uploading your dataset (only csv format allowed)
         </p>
-        <div className='max-w-xl mt-1 text-lg text-slate-600 mx-auto py-11 px-1'>
+        <div className='max-w-xl mt-1 text-lg text-slate-600 mx-auto pt-11 px-1'>
           <div {...getRootProps({ style })}>
             <input {...getInputProps()} />
             {file && disabled && <p>{file.name} uploaded successfully</p>}
@@ -147,6 +202,19 @@ const FileUpload = () => {
               </>
             )}
           </div>
+        </div>
+        <p className='max-w-xl mt-1 text-xl text-slate-600 mx-auto px-1 py-5'>
+          OR
+        </p>
+        <div className='pb-5'>
+          <button
+            className='btn rounded-full btn-wide btn-primary'
+            onClick={async () => {
+              await demoDataset();
+            }}
+          >
+            Use demo dataset (iris.csv)
+          </button>
         </div>
       </div>
     </div>
