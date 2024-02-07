@@ -33,6 +33,7 @@ const HomePage = () => {
   const instructions = useSelector((state) => state.instructions);
   const columns = useSelector((state) => state.columns);
   const response_filename = useSelector((state) => state.response_filename);
+  const has_tree = useSelector((state) => state.has_tree);
 
   useEffect(() => {
     if (dtfile === null) {
@@ -142,6 +143,11 @@ const HomePage = () => {
             has_tree: true,
           })
         );
+        dispatch(
+          setInstructions({
+            instructions: {},
+          })
+        );
         displayTree(generateTree.output_tree);
         scrollToBottom();
         console.log('Tree generated successfully');
@@ -167,7 +173,8 @@ const HomePage = () => {
         })
       );
       let findMatch = false;
-      for (let i = 0; i < instructionsArray.length; i++) {
+      let i = -1;
+      for (i = 0; i < instructionsArray.length; i++) {
         if (value.toLowerCase().includes(instructionsArray[i].toLowerCase())) {
           let str = value.replace(instructionsArray[i], '');
           if (i === 4) {
@@ -229,6 +236,20 @@ const HomePage = () => {
                 })
               );
             }
+          } else if (!has_tree && i >= 6 && i <= 15) {
+            findMatch = true;
+            dispatch(
+              addMessage({
+                text: 'This command can only be used after generating a decision tree.',
+                sender: 'bot',
+                info: true,
+                table: true,
+                tree: false,
+                back: null,
+              })
+            );
+            scrollToBottom();
+            setInputValue('');
           } else if (i === 6) {
             //set node and threshold
             let parts = value.split(' to ');
@@ -238,17 +259,23 @@ const HomePage = () => {
             const threshold = getNumber(parts2[1]);
             if (node_number && threshold && cols.length > 0) {
               findMatch = true;
-              const instructs = instructions;
-              if (!('nodes_contraints' in instructs)) {
-                instructs.nodes_contraints = {};
+              const instructs = { ...instructions };
+              if (!('nodes_constraints' in instructs)) {
+                instructs.nodes_constraints = {};
               }
-              if (!(node_number in instructs['nodes_contraints'])) {
-                instructs['nodes_contraints'][node_number] = {};
+              instructs.nodes_constraints = {
+                ...instructs.nodes_constraints,
+              };
+              if (!(node_number in instructs['nodes_constraints'])) {
+                instructs['nodes_constraints'][node_number] = {};
               }
-              if (!('yes' in instructs['nodes_contraints'][node_number])) {
-                instructs['nodes_contraints'][node_number]['yes'] = [];
+              instructs.nodes_constraints[node_number] = {
+                ...instructs.nodes_constraints[node_number],
+              };
+              if (!('yes' in instructs['nodes_constraints'][node_number])) {
+                instructs['nodes_constraints'][node_number]['yes'] = [];
               }
-              instructs['nodes_contraints'][node_number]['yes'] = [
+              instructs['nodes_constraints'][node_number]['yes'] = [
                 cols[0] + ',' + threshold,
               ];
               dispatch(
@@ -265,17 +292,23 @@ const HomePage = () => {
             const cols = getColumns(parts2[1]);
             if (node_number && cols.length > 0) {
               findMatch = true;
-              const instructs = instructions;
-              if (!('nodes_contraints' in instructs)) {
-                instructs.nodes_contraints = {};
+              let instructs = { ...instructions };
+              if (!('nodes_constraints' in instructs)) {
+                instructs.nodes_constraints = {};
               }
-              if (!(node_number in instructs['nodes_contraints'])) {
-                instructs['nodes_contraints'][node_number] = {};
+              instructs.nodes_constraints = {
+                ...instructs.nodes_constraints,
+              };
+              if (!(node_number in instructs['nodes_constraints'])) {
+                instructs['nodes_constraints'][node_number] = {};
               }
-              if (!('yes' in instructs['nodes_contraints'][node_number])) {
-                instructs['nodes_contraints'][node_number]['yes'] = [];
+              instructs.nodes_constraints[node_number] = {
+                ...instructs.nodes_constraints[node_number],
+              };
+              if (!('yes' in instructs['nodes_constraints'][node_number])) {
+                instructs['nodes_constraints'][node_number]['yes'] = [];
               }
-              instructs['nodes_contraints'][node_number]['yes'] = cols;
+              instructs['nodes_constraints'][node_number]['yes'] = cols;
               dispatch(
                 setInstructions({
                   instructions: instructs,
@@ -290,17 +323,23 @@ const HomePage = () => {
             const cols = getColumns(parts2[1]);
             if (node_number && cols.length > 0) {
               findMatch = true;
-              const instructs = instructions;
-              if (!('nodes_contraints' in instructs)) {
-                instructs.nodes_contraints = {};
+              let instructs = { ...instructions };
+              if (!('nodes_constraints' in instructs)) {
+                instructs.nodes_constraints = {};
               }
-              if (!(node_number in instructs['nodes_contraints'])) {
-                instructs['nodes_contraints'][node_number] = {};
+              instructs.nodes_constraints = {
+                ...instructs.nodes_constraints,
+              };
+              if (!(node_number in instructs['nodes_constraints'])) {
+                instructs['nodes_constraints'][node_number] = {};
               }
-              if (!('no' in instructs['nodes_contraints'][node_number])) {
-                instructs['nodes_contraints'][node_number]['no'] = [];
+              instructs.nodes_constraints[node_number] = {
+                ...instructs.nodes_constraints[node_number],
+              };
+              if (!('no' in instructs['nodes_constraints'][node_number])) {
+                instructs['nodes_constraints'][node_number]['no'] = [];
               }
-              instructs['nodes_contraints'][node_number]['no'] = cols;
+              instructs['nodes_constraints'][node_number]['no'] = cols;
               dispatch(
                 setInstructions({
                   instructions: instructs,
@@ -309,18 +348,24 @@ const HomePage = () => {
             }
           } else if (i === 9) {
             //remove tree
-            const node_number = getNumber(str);
+            let node_number = getNumber(str);
             if (node_number) {
               findMatch = true;
-              const instructs = instructions;
-              if (!('nodes_contraints' in instructs)) {
-                instructs.nodes_contraints = {};
+              let instructs = { ...instructions };
+              if (!('nodes_constraints' in instructs)) {
+                instructs.nodes_constraints = {};
               }
-              if (!(node_number in instructs['nodes_contraints'])) {
-                instructs['nodes_contraints'][node_number] = {};
+              instructs.nodes_constraints = {
+                ...instructs.nodes_constraints,
+              };
+              if (!(node_number in instructs['nodes_constraints'])) {
+                instructs['nodes_constraints'][node_number] = {};
               }
-              if (!('remove' in instructs['nodes_contraints'][node_number])) {
-                instructs['nodes_contraints'][node_number]['remove'] = 'y';
+              instructs.nodes_constraints[node_number] = {
+                ...instructs.nodes_constraints[node_number],
+              };
+              if (!('remove' in instructs['nodes_constraints'][node_number])) {
+                instructs['nodes_constraints'][node_number]['remove'] = 'y';
               }
               dispatch(
                 setInstructions({
@@ -338,6 +383,11 @@ const HomePage = () => {
                   root_color: str,
                 })
               );
+              dispatch(
+                updateInstructions({
+                  root_color: str,
+                })
+              );
               setSidebar(true);
               setContentSidebar(3);
             }
@@ -348,6 +398,11 @@ const HomePage = () => {
               findMatch = true;
               dispatch(
                 updateTreeLayout({
+                  root_size: num,
+                })
+              );
+              dispatch(
+                updateInstructions({
                   root_size: num,
                 })
               );
@@ -364,6 +419,11 @@ const HomePage = () => {
                   branch_color: str,
                 })
               );
+              dispatch(
+                updateInstructions({
+                  branch_color: str,
+                })
+              );
               setSidebar(true);
               setContentSidebar(3);
             }
@@ -374,6 +434,11 @@ const HomePage = () => {
               findMatch = true;
               dispatch(
                 updateTreeLayout({
+                  branch_size: num,
+                })
+              );
+              dispatch(
+                updateInstructions({
                   branch_size: num,
                 })
               );
@@ -390,6 +455,11 @@ const HomePage = () => {
                   leaf_color: str,
                 })
               );
+              dispatch(
+                updateInstructions({
+                  leaf_color: str,
+                })
+              );
               setSidebar(true);
               setContentSidebar(3);
             }
@@ -400,6 +470,11 @@ const HomePage = () => {
               findMatch = true;
               dispatch(
                 updateTreeLayout({
+                  leaf_size: num,
+                })
+              );
+              dispatch(
+                updateInstructions({
                   leaf_size: num,
                 })
               );
@@ -414,6 +489,28 @@ const HomePage = () => {
         dispatch(
           addMessage({
             text: 'I am not able to understand your request. Click on "i" to get more instructions about the commands to use to interact with me.',
+            sender: 'bot',
+            info: true,
+            table: true,
+            tree: false,
+            back: null,
+          })
+        );
+      }
+      if (has_tree && i >= 10 && i <= 15) {
+        dispatch(
+          addMessage({
+            text: 'generate',
+            sender: 'user',
+            info: false,
+            table: false,
+            tree: false,
+            back: null,
+          })
+        );
+        dispatch(
+          addMessage({
+            text: 'Layout of decision tree updated',
             sender: 'bot',
             info: true,
             table: true,
@@ -453,7 +550,7 @@ const HomePage = () => {
     for (const [key, value] of Object.entries(instructs)) {
       let text = null;
       if (key === 'features') {
-        text = instructionsArray[0] + ' ' + value.join(',');
+        text = instructionsArray[0] + ' ' + value.join(', ');
       } else if (key === 'target') {
         text = instructionsArray[1] + ' ' + value;
       } else if (key === 'max_depth') {
@@ -462,7 +559,7 @@ const HomePage = () => {
         text = instructionsArray[3] + ' ' + value;
       } else if (key === 'train_size') {
         text = instructionsArray[5] + ' ' + value;
-      } else if (key === 'nodes_contraints') {
+      } else if (key === 'nodes_constraints') {
         for (const [num_node, val] of Object.entries(value)) {
           for (const [k, v] of Object.entries(val)) {
             if (k === 'remove') {
@@ -472,14 +569,14 @@ const HomePage = () => {
                 'set node ' +
                 num_node +
                 ' to any feature except the following: ' +
-                v.join(',');
+                v.join(', ');
             } else if (k === 'yes') {
               if (v.length > 1) {
                 text =
                   'set node ' +
                   num_node +
                   ' to one of the following features: ' +
-                  v.join(',');
+                  v.join(', ');
               } else {
                 let vl = v[0];
                 if (vl.includes(',')) {
@@ -496,7 +593,7 @@ const HomePage = () => {
                     'set node ' +
                     num_node +
                     ' to one of the following features: ' +
-                    v.join(',');
+                    v.join(', ');
                 }
               }
             }
@@ -527,7 +624,7 @@ const HomePage = () => {
       } else if (key === 'leaf_size') {
         text = instructionsArray[15] + ' ' + value;
       }
-      if (text && key !== 'nodes_contraints') {
+      if (text && key !== 'nodes_constraints') {
         dispatch(
           addMessage({
             text: text,

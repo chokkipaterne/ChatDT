@@ -2,6 +2,12 @@ pip install fastapi
 pip install "uvicorn[standard]"
 uvicorn server:app --reload
 
+//only server
+/root/.pyenv/versions/3.8.1/envs/djangoenv/bin/python -m pip install scikit-learn
+/root/.pyenv/versions/3.8.1/envs/djangoenv/bin/python -m pip install fastapi
+/root/.pyenv/versions/3.8.1/envs/djangoenv/bin/python -m pip install "uvicorn[standard]"
+/root/.pyenv/versions/3.8.1/envs/djangoenv/bin/python -m pip install python-multipart
+
 //Access link
 http://127.0.0.1:8000/docs
 

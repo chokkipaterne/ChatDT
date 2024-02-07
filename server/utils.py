@@ -1,9 +1,6 @@
 import pandas as pd
-import numpy as np
-from sklearn.tree import export_graphviz
 from sklearn.utils import Bunch
 from cart import DecisionTreeClassifier
-from sklearn.model_selection import train_test_split
 import math
 import json
 import random
@@ -93,6 +90,7 @@ def generate_tree(filename, constraints={}, rep_filename=None):
             data = json.loads(data)
             dict_tree = data["dict_tree"]
     # 2. Fit decision tree.
+    #print(constraints)
     clf = DecisionTreeClassifier(constraints, features, dict_tree)
     clf.fit(X, y)
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Tree from 'react-d3-tree';
 import { useSelector } from 'react-redux';
 

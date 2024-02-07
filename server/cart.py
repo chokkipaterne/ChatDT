@@ -148,8 +148,8 @@ class DecisionTreeClassifier:
         predicted_class = np.argmax(num_samples_per_class)
 
         nodes_constraints = {}
-        if "nodes_constraints" in self.constraints and node.ref_init in self.constraints["nodes_constraints"]:
-            nodes_constraints = self.constraints["nodes_constraints"][node.ref_init]
+        if "nodes_constraints" in self.constraints and str(node.ref_init) in self.constraints["nodes_constraints"]:
+            nodes_constraints = self.constraints["nodes_constraints"][str(node.ref_init)]
         
         no_features_index = []
         yes_features_index = []
