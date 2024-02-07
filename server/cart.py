@@ -1,5 +1,6 @@
 """Implementation of the CART algorithm to train decision tree classifiers."""
 import numpy as np
+import math
 
 import tree
 from sklearn.metrics import accuracy_score 
@@ -112,6 +113,7 @@ class DecisionTreeClassifier:
                     best_gini = gini
                     best_idx = idx
                     best_thr = (thresholds[i] + thresholds[i - 1]) / 2  # midpoint
+                    best_thr = math.floor(best_thr*100)/100
 
         return best_idx, best_thr
 
@@ -156,6 +158,7 @@ class DecisionTreeClassifier:
         idx = None
         thr = None
         remove = False
+        change = True
        
         if bool(nodes_constraints):
             if "remove" in nodes_constraints:
@@ -193,11 +196,16 @@ class DecisionTreeClassifier:
             if y.size < self.constraints["min_samples_split"]:
                 constraints_respected = False
         
-        if (node is not None and node.feature_index in good_feature_index and idx is None and thr is None) or \
-            (node is not None and node.feature_index in good_feature_index and node.feature_index == idx and node.threshold == thr):
-            if not constraints_respected:
-                node.left = None
-                node.right = None
+        if (node is not None and node.feature_index in good_feature_index and node.left is None) :
+            change = False
+        elif (node is not None and node.feature_index in good_feature_index) and not constraints_respected:
+            node.left = None
+            node.right = None
+            node.feature_index = 0
+            node.threshold = 0
+        elif (node is not None and node.feature_index in good_feature_index and idx is None and thr is None):
+            idx = node.feature_index
+            thr = node.threshold
         else:
             node = tree.Node(
                 gini=self._gini(y),
@@ -206,7 +214,7 @@ class DecisionTreeClassifier:
                 predicted_class=predicted_class,
             ) 
 
-        if constraints_respected and not remove:
+        if constraints_respected and not remove and change:
             if idx is None and thr is None:
                 idx, thr = self._best_split(X, y, good_feature_index)
             if idx is not None:
@@ -286,7 +294,7 @@ class DecisionTreeClassifier:
         return node.predicted_class
     
     def calculate_accuracy(self, Y_test, Y_pred):
-        return accuracy_score(Y_test, Y_pred)
+        return math.ceil(accuracy_score(Y_test, Y_pred)*100)/100 
     
     def generate_dict(self, node=None):
         if not node:
