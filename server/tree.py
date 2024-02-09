@@ -1,12 +1,11 @@
 """Binary tree with decision tree semantics and ASCII visualization."""
 
 class Node:
-    """A decision tree node."""
-
+    """A decision tree node for classification."""
     def __init__(self, gini, num_samples, num_samples_per_class, predicted_class):
         self.gini = gini
         self.num_samples = num_samples
-        self.num_samples_per_class = num_samples_per_class
+        self.num_samples_per_class = num_samples_per_class # for classification only
         self.predicted_class = predicted_class
         self.feature_index = 0
         self.threshold = 0
@@ -15,6 +14,7 @@ class Node:
         self.ref = 0
         self.ref_init = 0
 
+    #only for classification
     def debug(self, feature_names, class_names, show_details):
         """Print an ASCII visualization of the tree."""
         lines, _, _, _ = self._debug_aux(
@@ -23,6 +23,7 @@ class Node:
         for line in lines:
             print(line)
 
+    #only for classification
     def _debug_aux(self, feature_names, class_names, show_details, root=False):
         # See https://stackoverflow.com/a/54074933/1143396 for similar code.
         is_leaf = not self.right
@@ -78,3 +79,17 @@ class Node:
         if not root:
             lines[0] = lines[0][:middle] + "┴" + lines[0][middle + 1 :]
         return lines, n + m + width, max(p, q) + 2 + len(top_lines), middle
+
+
+class NodeRegression:
+    """A decision tree node for regression."""
+    def __init__(self, num_samples, value):
+        self.num_samples = num_samples
+        self.value = value #for regression predicted_class is value
+        self.feature_index = 0
+        self.threshold = 0
+        self.left = None
+        self.right = None
+        self.ref = 0
+        self.ref_init = 0
+        self.var_red = 0 #for regression only variance reduction

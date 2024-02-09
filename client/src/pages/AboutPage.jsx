@@ -12,9 +12,9 @@ const AboutPage = () => {
           <p>
             ChatDT is designed to empower you with the ability to effortlessly
             build decision trees. ChatDT offers a user-friendly interface,
-            allowing you to create decision trees through natural and intuitive
-            conversations. No need for complicated forms or coding – just chat
-            and watch your decision tree come to life.
+            allowing you to create or modify decision trees through natural and
+            intuitive conversations. No need for complicated forms or coding –
+            just chat and watch your decision tree come to life.
           </p>
           <Instructions />
           <p className='text-xl font-semibold'>Contact us</p>

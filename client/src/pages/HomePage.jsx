@@ -120,9 +120,12 @@ const HomePage = () => {
         dispatch(
           addMessage({
             text:
-              'Decision tree generated with an accuracy of ' +
-              parseFloat(generateTree.accuracy) * 100 +
-              '%',
+              generateTree.dt_type === 'classification'
+                ? 'Decision tree generated with an accuracy of ' +
+                  parseFloat(generateTree.accuracy) * 100 +
+                  '%'
+                : 'Decision tree generated with an error of ' +
+                  parseFloat(generateTree.accuracy),
             sender: 'bot',
             info: true,
             table: true,
@@ -131,6 +134,7 @@ const HomePage = () => {
             constraints: generateTree.constraints,
             output: generateTree.output_tree,
             accuracy: generateTree.accuracy,
+            dt_type: generateTree.dt_type,
           })
         );
         dispatch(

@@ -47,7 +47,7 @@ const FileUpload = () => {
         body: formData,
       });
       const savedFile = await savedFileResponse.json();
-      console.log(savedFile);
+      //console.log(savedFile);
       if (savedFile) {
         const initialMessages = [
           {
