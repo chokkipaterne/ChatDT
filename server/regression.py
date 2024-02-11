@@ -2,7 +2,7 @@
 import numpy as np
 import math
 
-import tree
+from tree import NodeRegression
 from sklearn.metrics import mean_squared_error
 
 nb_nodes = 0
@@ -51,7 +51,7 @@ class DecisionTreeRegression:
         if not bool(dict_tree) or dict_tree is None:
             return None
         
-        node = tree.NodeRegression(
+        node = NodeRegression(
             num_samples= dict_tree["num_samples"],
             value= dict_tree["value"],
         )
@@ -133,7 +133,7 @@ class DecisionTreeRegression:
             idx = node.feature_index
             thr = node.threshold
         else:
-            node = tree.NodeRegression(
+            node = NodeRegression(
                 num_samples=y.size,
                 value=value,
             ) 
@@ -174,7 +174,7 @@ class DecisionTreeRegression:
         global nb_nodes
         
         leaf_value = self.calculate_leaf_value(y)
-        node = tree.NodeRegression(
+        node = NodeRegression(
             num_samples=y.size,
             value=leaf_value,
         )
@@ -252,12 +252,17 @@ class DecisionTreeRegression:
         return node.value
     
     def calculate_accuracy(self, Y_test, Y_pred):
-        return math.ceil(np.sqrt(mean_squared_error(Y_test, Y_pred))*10000)/10000 
+        return math.ceil(np.sqrt(mean_squared_error(Y_test, Y_pred))*100)/100 
     
     def generate_dict(self, node=None):
         if not node:
             node = self.tree_
-        dict = node.__dict__
+        
+        try:
+            dict = node.__dict__
+        except Exception as e:
+            dict = dict
+
         if dict['left']:
             dict['left'] = self.generate_dict(dict['left'])
             dict['right'] = self.generate_dict(dict['right'])
@@ -265,16 +270,22 @@ class DecisionTreeRegression:
 
     def generate_output_dict(self, feature_names, node=None):
         if not node:
-            node = self.tree_
-            dict = node.__dict__
+            dict = self.tree_
         else:
             dict = node
+        
+        try:
+            dict = dict.__dict__
+        except Exception as e:
+            dict = dict
 
         output = {}
         if dict['left']:
             threshold = str(format(dict['threshold'], ".2f"))
+            #threshold = str(dict['threshold'])
             output['name'] = feature_names[dict['feature_index']] + "<" + threshold
             var_red = float(format(dict['var_red'], ".2f"))
+            #var_red = dict['var_red']
             output['attributes'] = {
                 'node': dict['ref'],
                 'num_samples': dict['num_samples'],
@@ -290,7 +301,12 @@ class DecisionTreeRegression:
         #needed_keys = ['left', 'right', 'threshold']
         if not tree:
             tree = self.tree_
-        dict = tree.__dict__
+        
+        try:
+            dict = tree.__dict__
+        except Exception as e:
+            dict = tree
+
             #dict = {k:dict[k] for k in needed_keys}
         if not dict['right']:
             print(dict['value'])
@@ -305,8 +321,12 @@ class DecisionTreeRegression:
         ''' function to print the tree '''
         if not tree:
             tree = self.tree_
-        dict = tree.__dict__
-        
+         
+        try:
+            dict = tree.__dict__
+        except Exception as e:
+            dict = tree
+
         if not dict['right']:
             return str(dict['value']) + "\n"
         else:
@@ -315,4 +335,5 @@ class DecisionTreeRegression:
             + self.string_tree(feature_names, dict['left'], indent + " ") \
             + str("%sright:" % (indent)) \
             + self.string_tree(feature_names, dict['right'], indent + " ")
+    
         

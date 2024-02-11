@@ -100,7 +100,7 @@ def generate_tree(filename, constraints={}, rep_filename=None):
 
         #load prev dataset
         dict_tree = {}
-        if rep_filename:
+        if rep_filename and rep_filename != 'no':
             rep_path = "responses/"+rep_filename
             isExist = os.path.exists(rep_path)
             if isExist:
@@ -109,6 +109,7 @@ def generate_tree(filename, constraints={}, rep_filename=None):
                 data = data.replace("None", '""')
                 data = json.loads(data)
                 dict_tree = data["dict_tree"]
+        
         # 2. Fit decision tree.
         #print(constraints)
         clf = DecisionTreeClassifier(constraints, features, dict_tree)
@@ -158,7 +159,7 @@ def generate_tree(filename, constraints={}, rep_filename=None):
 
         #load prev dataset
         dict_tree = {}
-        if rep_filename:
+        if rep_filename and rep_filename != 'no':
             rep_path = "responses/"+rep_filename
             isExist = os.path.exists(rep_path)
             if isExist:
@@ -232,10 +233,9 @@ filename = "Breast_cancer_data_20240209152807.csv"
 #filename = "demo_iris.csv"
 rep = generate_tree(filename, constraints, rep_filename)
 
-
 constraints = {}
-rep_filename = None
-filename = "airfoil_noise_data_20240209200411.csv"
+rep_filename = 'no'
+filename = "Breast_cancer_data_20240211004318.csv"
 #filename = "demo_iris.csv"
 rep = generate_tree(filename, constraints, rep_filename)
 """

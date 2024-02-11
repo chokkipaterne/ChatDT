@@ -2,7 +2,7 @@
 import numpy as np
 import math
 
-import tree
+from tree import Node
 from sklearn.metrics import accuracy_score 
 
 nb_nodes = 0
@@ -125,7 +125,7 @@ class DecisionTreeClassifier:
         if not bool(dict_tree) or dict_tree is None:
             return None
         
-        node = tree.Node(
+        node = Node(
             gini= dict_tree["gini"],
             num_samples= dict_tree["num_samples"],
             num_samples_per_class= dict_tree["num_samples_per_class"],
@@ -208,7 +208,7 @@ class DecisionTreeClassifier:
             idx = node.feature_index
             thr = node.threshold
         else:
-            node = tree.Node(
+            node = Node(
                 gini=self._gini(y),
                 num_samples=y.size,
                 num_samples_per_class=num_samples_per_class,
@@ -249,7 +249,7 @@ class DecisionTreeClassifier:
         num_samples_per_class = [np.sum(y == i) for i in range(self.n_classes_)]
         predicted_class = np.argmax(num_samples_per_class)
 
-        node = tree.Node(
+        node = Node(
             gini=self._gini(y),
             num_samples=y.size,
             num_samples_per_class=num_samples_per_class,
@@ -300,7 +300,12 @@ class DecisionTreeClassifier:
     def generate_dict(self, node=None):
         if not node:
             node = self.tree_
-        dict = node.__dict__
+        try:
+            dict = node.__dict__
+        except Exception as e:
+            dict = node
+
+        #dict = node.__dict__
         if dict['left']:
             dict['left'] = self.generate_dict(dict['left'])
             dict['right'] = self.generate_dict(dict['right'])
@@ -308,24 +313,33 @@ class DecisionTreeClassifier:
 
     def generate_output_dict(self, feature_names, class_names, node=None):
         if not node:
-            node = self.tree_
-            dict = node.__dict__
+            mydict = self.tree_
         else:
-            dict = node
-
+            mydict = node
+        
+        try:
+            mydict = mydict.__dict__
+        except Exception as e:
+            mydict = mydict
+        
         output = {}
-        if dict['left']:
-            threshold = str(format(dict['threshold'], ".2f"))
-            output['name'] = feature_names[dict['feature_index']] + "<" + threshold
-            gini = float(format(dict['gini'], ".2f"))
+        if mydict['left']:
+            threshold = str(format(mydict['threshold'], ".2f"))
+            #threshold = str(mydict['threshold'])
+            output['name'] = feature_names[mydict['feature_index']] + "<" + threshold
+            gini = float(format(mydict['gini'], ".2f"))
+            #gini = mydict['gini']
             output['attributes'] = {
-                'node': dict['ref'],
-                'num_samples': dict['num_samples'],
+                'node': mydict['ref'],
+                'num_samples': mydict['num_samples'],
                 'gini': gini
             }
-            output['children'] = [self.generate_output_dict(feature_names, class_names, dict['left']), self.generate_output_dict(feature_names, class_names, dict['right'])]
+            output['children'] = [self.generate_output_dict(feature_names, class_names, mydict['left']), self.generate_output_dict(feature_names, class_names, mydict['right'])]
         else:
-            output['name'] = class_names[dict['predicted_class']]
+            output['name'] = class_names[mydict['predicted_class']]
+            if(not isinstance(output['name'],str)):
+                output['name'] = int(class_names[mydict['predicted_class']])
+            
         return output
     
     def print_tree(self, feature_names, class_names, tree=None, indent=" "):
@@ -333,8 +347,12 @@ class DecisionTreeClassifier:
         #needed_keys = ['left', 'right', 'threshold']
         if not tree:
             tree = self.tree_
-        dict = tree.__dict__
-            #dict = {k:dict[k] for k in needed_keys}
+        
+        try:
+            dict = tree.__dict__
+        except Exception as e:
+            dict = tree
+            
         if not dict['right']:
             print(class_names[dict['predicted_class']])
         else:
@@ -348,8 +366,8 @@ class DecisionTreeClassifier:
         ''' function to print the tree '''
         if not tree:
             tree = self.tree_
-        dict = tree.__dict__
-        
+        if type(tree) is Node:
+            dict = tree.__dict__
         if not dict['right']:
             return str(class_names[dict['predicted_class']]) + "\n"
         else:
@@ -358,4 +376,4 @@ class DecisionTreeClassifier:
             + self.string_tree(feature_names, class_names, dict['left'], indent + " ") \
             + str("%sright:" % (indent)) \
             + self.string_tree(feature_names, class_names, dict['right'], indent + " ")
-        
+    

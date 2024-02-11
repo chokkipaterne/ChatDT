@@ -47,6 +47,7 @@ const HomePage = () => {
   const [contentSidebar, setContentSidebar] = useState(0);
   const [loading, setLoading] = useState(false);
   const [treeData, setTreeData] = useState({});
+  const [hasCreationdt, setHasCreationdt] = useState(false);
 
   useEffect(() => {
     show(2);
@@ -105,7 +106,14 @@ const HomePage = () => {
     const formData = new FormData();
     formData.append('constraints', JSON.stringify(instructions));
     formData.append('filename', dtfile);
-    formData.append('rep_filename', response_filename);
+    if (
+      'nodes_constraints' in instructions &&
+      Object.keys(instructions.nodes_constraints).length !== 0
+    ) {
+      formData.append('rep_filename', response_filename);
+    } else {
+      formData.append('rep_filename', 'no');
+    }
 
     try {
       const endpoint = `${process.env.REACT_APP_API_URL}processdata`;
@@ -116,15 +124,15 @@ const HomePage = () => {
       const generateTree = await generateTreeResponse.json();
       console.log(generateTree);
       setLoading(false);
-      if (generateTree) {
+      if (generateTree && generateTree.dt_type) {
         dispatch(
           addMessage({
             text:
               generateTree.dt_type === 'classification'
-                ? 'Decision tree generated with an accuracy of ' +
+                ? 'Decision tree (classification) generated with an accuracy of ' +
                   parseFloat(generateTree.accuracy) * 100 +
                   '%'
-                : 'Decision tree generated with an error of ' +
+                : 'Decision tree (regression) generated with an error of ' +
                   parseFloat(generateTree.accuracy),
             sender: 'bot',
             info: true,
@@ -147,19 +155,52 @@ const HomePage = () => {
             has_tree: true,
           })
         );
+        const instructs = { ...instructions };
+        if ('nodes_constraints' in instructs) {
+          instructs.nodes_constraints = {};
+        }
         dispatch(
           setInstructions({
-            instructions: {},
+            instructions: instructs,
           })
         );
         displayTree(generateTree.output_tree);
         scrollToBottom();
+        setHasCreationdt(false);
         console.log('Tree generated successfully');
       } else {
         console.error('Failed to generate tree');
+        let text = '';
+        if (
+          Object.prototype.toString.call(generateTree.detail) ===
+          '[object String]'
+        ) {
+          text = '. Error details: ' + generateTree.detail;
+        }
+        dispatch(
+          addMessage({
+            text: 'Failed to generate tree' + text,
+            sender: 'bot',
+            info: true,
+            table: true,
+            tree: false,
+            back: null,
+          })
+        );
       }
     } catch (error) {
+      setLoading(false);
       console.log(error);
+      dispatch(
+        addMessage({
+          text: 'Failed to generate tree. Error details: ' + error.message,
+          sender: 'bot',
+          info: true,
+          table: true,
+          tree: false,
+          back: null,
+        })
+      );
     }
   };
 
@@ -245,6 +286,20 @@ const HomePage = () => {
             dispatch(
               addMessage({
                 text: 'This command can only be used after generating a decision tree.',
+                sender: 'bot',
+                info: true,
+                table: true,
+                tree: false,
+                back: null,
+              })
+            );
+            scrollToBottom();
+            setInputValue('');
+          } else if (hasCreationdt && i >= 6 && i <= 15) {
+            findMatch = true;
+            dispatch(
+              addMessage({
+                text: 'You cannot mix the commands used for decision tree creation and modification.',
                 sender: 'bot',
                 info: true,
                 table: true,
@@ -500,6 +555,9 @@ const HomePage = () => {
             back: null,
           })
         );
+      }
+      if (findMatch && i <= 5 && i !== 4) {
+        setHasCreationdt(true);
       }
       if (has_tree && i >= 10 && i <= 15) {
         dispatch(
