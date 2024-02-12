@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 from tree import Node
-from sklearn.metrics import accuracy_score 
+from sklearn.metrics import accuracy_score
 
 nb_nodes = 0
 left_nodes = []
@@ -14,6 +14,10 @@ class DecisionTreeClassifier:
         self.constraints = constraints
         self.features = features
         self.dict_tree = dict_tree
+        self.min_num_samples = float("inf")
+        self.max_num_samples = -float("inf")
+        self.min_gini = float("inf")
+        self.max_gini = -float("inf")
     
     def fit(self, X, y):
         global nb_nodes, left_nodes, right_nodes
@@ -239,6 +243,15 @@ class DecisionTreeClassifier:
                     node.right = self._update_tree(X_right, y_right, node.right, depth + 1, False)
                 else:
                     node.right = self._grow_tree(X_right, y_right, depth + 1, False)
+        
+        if node.num_samples > self.max_num_samples:
+            self.max_num_samples = node.num_samples
+        if node.num_samples < self.min_num_samples:
+            self.min_num_samples = node.num_samples
+        if node.gini > self.max_gini:
+            self.max_gini = node.gini
+        if node.num_samples < self.min_gini:
+            self.min_gini = node.gini
         return node
     
     def _grow_tree(self, X, y, depth=0, is_left=False):
@@ -282,6 +295,16 @@ class DecisionTreeClassifier:
                         right_nodes.append(node.feature_index)
                 node.left = self._grow_tree(X_left, y_left, depth + 1,  True)
                 node.right = self._grow_tree(X_right, y_right, depth + 1, False)
+
+        if node.num_samples > self.max_num_samples:
+            self.max_num_samples = node.num_samples
+        if node.num_samples < self.min_num_samples:
+            self.min_num_samples = node.num_samples
+        if node.gini > self.max_gini:
+            self.max_gini = node.gini
+        if node.num_samples < self.min_gini:
+            self.min_gini = node.gini
+
         return node
 
     def _predict(self, inputs):
@@ -311,8 +334,30 @@ class DecisionTreeClassifier:
             dict['right'] = self.generate_dict(dict['right'])
         return dict
 
+    
+    def map_value_to_color(self, value, min_value, max_value):
+        print(value,min_value,max_value)
+        # Define the color range (light to strong)
+        light_color = (232, 244, 248)  # Light blue
+        strong_color = (0, 0, 255)      # Strong color (blue)
+
+        # Normalize the value to the range [0, 1]
+        normalized_value = (value - min_value) / (max_value - min_value)
+        normalized_value = abs(normalized_value)
+
+        # Linearly interpolate between light and strong colors
+        r = int(light_color[0] + (strong_color[0] - light_color[0]) * normalized_value)
+        g = int(light_color[1] + (strong_color[1] - light_color[1]) * normalized_value)
+        b = int(light_color[2] + (strong_color[2] - light_color[2]) * normalized_value)
+
+        # Convert RGB color to hexadecimal format
+        hex_color = "#{:02x}{:02x}{:02x}".format(r, g, b)
+        return hex_color
+
     def generate_output_dict(self, feature_names, class_names, node=None):
+        leaf_type = 1
         if not node:
+            leaf_type = 0
             mydict = self.tree_
         else:
             mydict = node
@@ -330,15 +375,29 @@ class DecisionTreeClassifier:
             gini = float(format(mydict['gini'], ".2f"))
             #gini = mydict['gini']
             output['attributes'] = {
+                'leaf_type': leaf_type,
                 'node': mydict['ref'],
                 'num_samples': mydict['num_samples'],
-                'gini': gini
+                'gini': gini,
+                'color_gini': self.map_value_to_color(mydict['gini'],self.min_gini,self.max_gini),
+                'color_num_samples': self.map_value_to_color(mydict['num_samples'],self.min_num_samples,self.max_num_samples),
             }
             output['children'] = [self.generate_output_dict(feature_names, class_names, mydict['left']), self.generate_output_dict(feature_names, class_names, mydict['right'])]
         else:
+            leaf_type = 2
             output['name'] = class_names[mydict['predicted_class']]
             if(not isinstance(output['name'],str)):
                 output['name'] = int(class_names[mydict['predicted_class']])
+
+            gini = float(format(mydict['gini'] or 0, ".2f"))
+            output['attributes'] = {
+                'leaf_type': leaf_type,
+                'node': mydict['ref'],
+                'num_samples': mydict['num_samples'],
+                'gini': gini,
+                'color_gini': self.map_value_to_color(mydict['gini'],self.min_gini,self.max_gini),
+                'color_num_samples': self.map_value_to_color(mydict['num_samples'],self.min_num_samples,self.max_num_samples),
+            }
             
         return output
     

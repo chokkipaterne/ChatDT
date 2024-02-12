@@ -34,6 +34,26 @@ const DecisionTree = (props) => {
     };
   }, [tree_layout]); // Run effect whenever 'color' state changes
 
+  const renderRectSvgNode = ({ nodeDatum, toggleNode }) => (
+    <g>
+      <rect
+        width='20'
+        height='20'
+        x='-10'
+        fill={nodeDatum.attributes?.color_gini}
+        onClick={toggleNode}
+      />
+      <text fill='black' strokeWidth='1' x='20'>
+        {nodeDatum.name}
+      </text>
+      {nodeDatum.attributes?.gini && (
+        <text fill='black' x='20' dy='20' strokeWidth='1'>
+          gini: {nodeDatum.attributes?.gini}
+        </text>
+      )}
+    </g>
+  );
+
   return (
     <Tree
       data={props.treeData}

@@ -45,6 +45,7 @@ const HomePage = () => {
   const [inputValue, setInputValue] = useState('');
   const [sidebar, setSidebar] = useState(false);
   const [contentSidebar, setContentSidebar] = useState(0);
+  const [showType, setShowType] = useState(0);
   const [loading, setLoading] = useState(false);
   const [treeData, setTreeData] = useState({});
   const [hasCreationdt, setHasCreationdt] = useState(false);
@@ -592,6 +593,7 @@ const HomePage = () => {
     setTreeData(tree);
     setSidebar(true);
     setContentSidebar(3);
+    setShowType(0);
   };
   const show = (value) => {
     setSidebar(true);
@@ -737,19 +739,62 @@ const HomePage = () => {
         {/* Left Sidebar */}
         {sidebar && (
           <div className='w-full sm:w-full md:w-3/5 p-4 overflow-y-auto overflow-x-auto shadow-md'>
-            <div
-              className='avatar placeholder relative top-2 float-right'
-              onClick={() => {
-                setSidebar(false);
-              }}
-            >
-              <div className='bg-neutral text-neutral-content rounded-full w-8 shadow-md cursor-pointer'>
+            <div className='avatar placeholder relative top-2 float-right'>
+              {contentSidebar === 3 && (
+                <>
+                  <div
+                    className='bg-neutral text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
+                    title='Go back to initial tree'
+                    onClick={() => {
+                      setShowType(0);
+                    }}
+                  >
+                    <span className='text-xs'>Back</span>
+                  </div>
+                  <div
+                    className='bg-primary text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
+                    title='Display the variation of the Gini index throughout the tree'
+                    onClick={() => {
+                      setShowType(1);
+                    }}
+                  >
+                    <span className='text-xs'>Gini</span>
+                  </div>
+                  <div
+                    className='bg-primary text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
+                    title='Display the variation of the variance reduction throughout the tree'
+                    onClick={() => {
+                      setShowType(2);
+                    }}
+                  >
+                    <span className='text-xs'>Var</span>
+                  </div>
+                  <div
+                    className='bg-primary text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
+                    title='Display the variation of the number of samples throughout the tree'
+                    onClick={() => {
+                      setShowType(3);
+                    }}
+                  >
+                    <span className='text-xs'>#Sp</span>
+                  </div>
+                </>
+              )}
+              <div
+                className='bg-red-500 text-white rounded-full w-8 shadow-md cursor-pointer'
+                onClick={() => {
+                  setSidebar(false);
+                }}
+                title='Close sidebar'
+              >
                 <span className='text-xs'>X</span>
               </div>
             </div>
             {contentSidebar === 1 && <Instructions />}
             {contentSidebar === 2 && <TableComponent />}
-            {contentSidebar === 3 && <DecisionTree treeData={treeData} />}
+            {contentSidebar === 3 && (
+              <DecisionTree treeData={treeData} showType={showType} />
+            )}
           </div>
         )}
 

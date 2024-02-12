@@ -14,6 +14,10 @@ class DecisionTreeRegression:
         self.constraints = constraints
         self.features = features
         self.dict_tree = dict_tree
+        self.min_num_samples = float("inf")
+        self.max_num_samples = -float("inf")
+        self.min_var_red = float("inf")
+        self.max_var_red = -float("inf")
     
     def fit(self, X, y):
         global nb_nodes, left_nodes, right_nodes
@@ -165,6 +169,15 @@ class DecisionTreeRegression:
                     node.right = self._update_tree(X_right, y_right, node.right, depth + 1, False)
                 else:
                     node.right = self._grow_tree(X_right, y_right, depth + 1, False)
+        
+        if node.num_samples > self.max_num_samples:
+            self.max_num_samples = node.num_samples
+        if node.num_samples < self.min_num_samples:
+            self.min_num_samples = node.num_samples
+        if node.var_red > self.max_var_red:
+            self.max_var_red = node.var_red
+        if node.num_samples < self.min_var_red:
+            self.min_var_red = node.var_red
         return node
     
     def _grow_tree(self, X, y, depth=0, is_left=False):
@@ -206,6 +219,15 @@ class DecisionTreeRegression:
                         right_nodes.append(node.feature_index)
                 node.left = self._grow_tree(X_left, y_left, depth + 1,  True)
                 node.right = self._grow_tree(X_right, y_right, depth + 1, False)
+
+        if node.num_samples > self.max_num_samples:
+            self.max_num_samples = node.num_samples
+        if node.num_samples < self.min_num_samples:
+            self.min_num_samples = node.num_samples
+        if node.var_red > self.max_var_red:
+            self.max_var_red = node.var_red
+        if node.num_samples < self.min_var_red:
+            self.min_var_red = node.var_red
 
         return node
     
@@ -267,9 +289,29 @@ class DecisionTreeRegression:
             dict['left'] = self.generate_dict(dict['left'])
             dict['right'] = self.generate_dict(dict['right'])
         return dict
+        
+    def map_value_to_color(self, value, min_value, max_value):
+        # Define the color range (light to strong)
+        light_color = (232, 244, 248)  # Light blue
+        strong_color = (0, 0, 255)      # Strong color (blue)
+
+        # Normalize the value to the range [0, 1]
+        normalized_value = (value - min_value) / (max_value - min_value)
+        normalized_value = abs(normalized_value)
+
+        # Linearly interpolate between light and strong colors
+        r = int(light_color[0] + (strong_color[0] - light_color[0]) * normalized_value)
+        g = int(light_color[1] + (strong_color[1] - light_color[1]) * normalized_value)
+        b = int(light_color[2] + (strong_color[2] - light_color[2]) * normalized_value)
+
+        # Convert RGB color to hexadecimal format
+        hex_color = "#{:02x}{:02x}{:02x}".format(r, g, b)
+        return hex_color
 
     def generate_output_dict(self, feature_names, node=None):
+        leaf_type = 1
         if not node:
+            leaf_type = 0
             dict = self.tree_
         else:
             dict = node
@@ -287,13 +329,26 @@ class DecisionTreeRegression:
             var_red = float(format(dict['var_red'], ".2f"))
             #var_red = dict['var_red']
             output['attributes'] = {
+                'leaf_type':leaf_type,
                 'node': dict['ref'],
                 'num_samples': dict['num_samples'],
-                'var_red': var_red
+                'var_red': var_red,
+                'color_var_red': self.map_value_to_color(dict['var_red'],self.min_var_red,self.max_var_red),
+                'color_num_samples': self.map_value_to_color(dict['num_samples'],self.min_num_samples,self.max_num_samples),
             }
             output['children'] = [self.generate_output_dict(feature_names, dict['left']), self.generate_output_dict(feature_names, dict['right'])]
         else:
+            leaf_type = 2
             output['name'] = dict['value']
+            var_red = float(format(dict['var_red'] or 0, ".2f"))
+            output['attributes'] = {
+                'leaf_type':leaf_type,
+                'node': dict['ref'],
+                'num_samples': dict['num_samples'],
+                'var_red': var_red,
+                'color_var_red': self.map_value_to_color(dict['var_red'],self.min_var_red,self.max_var_red),
+                'color_num_samples': self.map_value_to_color(dict['num_samples'],self.min_num_samples,self.max_num_samples),
+            }
         return output
     
     def print_tree(self, feature_names, tree=None, indent=" "):
