@@ -126,26 +126,25 @@ const HomePage = () => {
       console.log(generateTree);
       setLoading(false);
       if (generateTree && generateTree.dt_type) {
-        dispatch(
-          addMessage({
-            text:
-              generateTree.dt_type === 'classification'
-                ? 'Decision tree (classification) generated with an accuracy of ' +
-                  parseFloat(generateTree.accuracy) * 100 +
-                  '%'
-                : 'Decision tree (regression) generated with an error of ' +
-                  parseFloat(generateTree.accuracy),
-            sender: 'bot',
-            info: true,
-            table: true,
-            tree: true,
-            back: generateTree.response_filename,
-            constraints: generateTree.constraints,
-            output: generateTree.output_tree,
-            accuracy: generateTree.accuracy,
-            dt_type: generateTree.dt_type,
-          })
-        );
+        const msg = {
+          text:
+            generateTree.dt_type === 'classification'
+              ? 'Decision tree (classification) generated with an accuracy of ' +
+                parseFloat(generateTree.accuracy) * 100 +
+                '%'
+              : 'Decision tree (regression) generated with an error of ' +
+                parseFloat(generateTree.accuracy),
+          sender: 'bot',
+          info: true,
+          table: true,
+          tree: true,
+          back: generateTree.response_filename,
+          constraints: generateTree.constraints,
+          output: generateTree.output_tree,
+          accuracy: generateTree.accuracy,
+          dt_type: generateTree.dt_type,
+        };
+        dispatch(addMessage(msg));
         dispatch(
           setResponseFilename({
             response_filename: generateTree.response_filename,
@@ -165,7 +164,7 @@ const HomePage = () => {
             instructions: instructs,
           })
         );
-        displayTree(generateTree.output_tree);
+        displayTree(msg);
         scrollToBottom();
         setHasCreationdt(false);
         console.log('Tree generated successfully');
@@ -448,6 +447,7 @@ const HomePage = () => {
                   root_color: str,
                 })
               );
+              setShowType(0);
               setSidebar(true);
               setContentSidebar(3);
             }
@@ -466,6 +466,7 @@ const HomePage = () => {
                   root_size: num,
                 })
               );
+              setShowType(0);
               setSidebar(true);
               setContentSidebar(3);
             }
@@ -484,6 +485,7 @@ const HomePage = () => {
                   branch_color: str,
                 })
               );
+              setShowType(0);
               setSidebar(true);
               setContentSidebar(3);
             }
@@ -502,6 +504,7 @@ const HomePage = () => {
                   branch_size: num,
                 })
               );
+              setShowType(0);
               setSidebar(true);
               setContentSidebar(3);
             }
@@ -520,6 +523,7 @@ const HomePage = () => {
                   leaf_color: str,
                 })
               );
+              setShowType(0);
               setSidebar(true);
               setContentSidebar(3);
             }
@@ -538,6 +542,7 @@ const HomePage = () => {
                   leaf_size: num,
                 })
               );
+              setShowType(0);
               setSidebar(true);
               setContentSidebar(3);
             }
@@ -588,9 +593,9 @@ const HomePage = () => {
     }
   };
 
-  const displayTree = (tree) => {
+  const displayTree = (msg) => {
     //info: 1, table: 2, tree: 3, back: 4 ... 'reset',
-    setTreeData(tree);
+    setTreeData(msg);
     setSidebar(true);
     setContentSidebar(3);
     setShowType(0);
@@ -716,7 +721,7 @@ const HomePage = () => {
       })
     );
     dispatch(addMessage(message));
-    displayTree(message.output);
+    displayTree(message);
     scrollToBottom();
   };
   const backInstructions = (message) => {
@@ -744,31 +749,35 @@ const HomePage = () => {
                 <>
                   <div
                     className='bg-neutral text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
-                    title='Go back to initial tree'
+                    title='Display the initial tree'
                     onClick={() => {
                       setShowType(0);
                     }}
                   >
-                    <span className='text-xs'>Back</span>
+                    <span className='text-xs'>Init</span>
                   </div>
-                  <div
-                    className='bg-primary text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
-                    title='Display the variation of the Gini index throughout the tree'
-                    onClick={() => {
-                      setShowType(1);
-                    }}
-                  >
-                    <span className='text-xs'>Gini</span>
-                  </div>
-                  <div
-                    className='bg-primary text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
-                    title='Display the variation of the variance reduction throughout the tree'
-                    onClick={() => {
-                      setShowType(2);
-                    }}
-                  >
-                    <span className='text-xs'>Var</span>
-                  </div>
+                  {treeData && treeData.dt_type === 'classification' && (
+                    <div
+                      className='bg-primary text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
+                      title='Display the variation of the Gini index throughout the tree'
+                      onClick={() => {
+                        setShowType(1);
+                      }}
+                    >
+                      <span className='text-xs'>Gini</span>
+                    </div>
+                  )}
+                  {treeData && treeData.dt_type === 'regression' && (
+                    <div
+                      className='bg-primary text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
+                      title='Display the variation of the variance reduction throughout the tree'
+                      onClick={() => {
+                        setShowType(2);
+                      }}
+                    >
+                      <span className='text-xs'>Var</span>
+                    </div>
+                  )}
                   <div
                     className='bg-primary text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
                     title='Display the variation of the number of samples throughout the tree'
@@ -854,7 +863,7 @@ const HomePage = () => {
                       <img
                         alt='Tree'
                         onClick={() => {
-                          displayTree(message.output);
+                          displayTree(message);
                         }}
                         title='Show Tree'
                         className='w-6 cursor-pointer'
