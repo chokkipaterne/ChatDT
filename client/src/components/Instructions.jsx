@@ -28,9 +28,43 @@ const Instructions = () => {
       <div className='pt-4 pl-3'>
         <ul className='list-disc pl-2'>
           {instructionsArray.map((instruction, index) => (
-            <li key={index} className='mb-2'>
-              {instruction}
-            </li>
+            <>
+              {index === 0 && (
+                <p className='-ml-4'>
+                  <b>Commands for creating a decision tree</b>
+                </p>
+              )}
+              {index === 5 && (
+                <p className='-ml-4'>
+                  <b>
+                    Commands to update an existing decision tree (these commands
+                    should be used after the creation of a decision tree, not
+                    before)
+                  </b>
+                </p>
+              )}
+              {index === 9 && (
+                <p className='-ml-4'>
+                  <b>
+                    Commands to update the layout of an existing decision tree
+                    (these commands should be used once the user is satisfied
+                    about the generated decision tree but just wants to change
+                    the look and feel of the generated decision tree)
+                  </b>
+                </p>
+              )}
+              {index === 15 && (
+                <p className='-ml-4'>
+                  <b>
+                    This command should be called to create or update a decision
+                    tree after the user sets up its settings/constraints.
+                  </b>
+                </p>
+              )}
+              <li key={index} className='mb-2'>
+                {instruction}
+              </li>
+            </>
           ))}
         </ul>
       </div>
