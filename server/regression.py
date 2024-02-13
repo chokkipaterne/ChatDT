@@ -326,7 +326,7 @@ class DecisionTreeRegression:
             threshold = str(format(dict['threshold'], ".2f"))
             #threshold = str(dict['threshold'])
             output['name'] = feature_names[dict['feature_index']] + "<" + threshold
-            var_red = float(format(dict['var_red'], ".2f"))
+            var_red = float(format(dict['var_red'] if dict['var_red'] else 0, ".2f"))
             #var_red = dict['var_red']
             output['attributes'] = {
                 'leaf_type':leaf_type,
@@ -339,7 +339,7 @@ class DecisionTreeRegression:
             output['children'] = [self.generate_output_dict(feature_names, dict['left']), self.generate_output_dict(feature_names, dict['right'])]
         else:
             leaf_type = 2
-            output['name'] = dict['value']
+            output['name'] = float(format(dict['value'] or 0, ".2f"))
             var_red = float(format(dict['var_red'] or 0, ".2f"))
             output['attributes'] = {
                 'leaf_type':leaf_type,

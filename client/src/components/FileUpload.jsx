@@ -39,6 +39,7 @@ const FileUpload = () => {
   };
 
   const demoDataset = async () => {
+    setDisabled(true);
     const formData = new FormData();
     try {
       const endpoint = `${process.env.REACT_APP_API_URL}demo`;
@@ -208,7 +209,9 @@ const FileUpload = () => {
         </p>
         <div className='pb-5'>
           <button
-            className='btn rounded-full btn-wide btn-primary'
+            className={`btn rounded-full btn-wide btn-primary ${
+              disabled ? 'btn-disabled' : ''
+            }`}
             onClick={async () => {
               await demoDataset();
             }}

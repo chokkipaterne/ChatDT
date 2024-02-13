@@ -295,7 +295,7 @@ class DecisionTreeClassifier:
                         right_nodes.append(node.feature_index)
                 node.left = self._grow_tree(X_left, y_left, depth + 1,  True)
                 node.right = self._grow_tree(X_right, y_right, depth + 1, False)
-
+        
         if node.num_samples > self.max_num_samples:
             self.max_num_samples = node.num_samples
         if node.num_samples < self.min_num_samples:
@@ -388,7 +388,7 @@ class DecisionTreeClassifier:
             if(not isinstance(output['name'],str)):
                 output['name'] = int(class_names[mydict['predicted_class']])
 
-            gini = float(format(mydict['gini'] or 0, ".2f"))
+            gini = float(format(mydict['gini'] if mydict['gini'] else 0, ".2f"))
             output['attributes'] = {
                 'leaf_type': leaf_type,
                 'node': mydict['ref'],

@@ -776,7 +776,16 @@ const HomePage = () => {
                       setShowType(0);
                     }}
                   >
-                    <span className='text-xs'>Init</span>
+                    <span className='text-xs'>init</span>
+                  </div>
+                  <div
+                    className='bg-primary text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
+                    title='Display the variation of the number of samples throughout the tree'
+                    onClick={() => {
+                      setShowType(3);
+                    }}
+                  >
+                    <span className='text-xs'>#sp</span>
                   </div>
                   {treeData && treeData.dt_type === 'classification' && (
                     <div
@@ -786,7 +795,7 @@ const HomePage = () => {
                         setShowType(1);
                       }}
                     >
-                      <span className='text-xs'>Gini</span>
+                      <span className='text-xs'>gini</span>
                     </div>
                   )}
                   {treeData && treeData.dt_type === 'regression' && (
@@ -797,18 +806,9 @@ const HomePage = () => {
                         setShowType(2);
                       }}
                     >
-                      <span className='text-xs'>Var</span>
+                      <span className='text-xs'>var</span>
                     </div>
                   )}
-                  <div
-                    className='bg-primary text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
-                    title='Display the variation of the number of samples throughout the tree'
-                    onClick={() => {
-                      setShowType(3);
-                    }}
-                  >
-                    <span className='text-xs'>#Sp</span>
-                  </div>
                 </>
               )}
               <div

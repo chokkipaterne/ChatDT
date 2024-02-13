@@ -77,32 +77,26 @@ const DecisionTree = (props) => {
       <text fill='black' strokeWidth='1' x='30'>
         {nodeDatum.name}
       </text>
-      {nodeDatum.attributes?.leaf_type !== 2 && (
+      {showType === 1 && nodeDatum.attributes?.gini && (
         <text fill='#777' x='30' dy='20' strokeWidth='0.1'>
+          gini: {nodeDatum.attributes?.gini}
+        </text>
+      )}
+      {showType === 2 && nodeDatum.attributes?.var_red && (
+        <text fill='#777' x='30' dy='20' strokeWidth='0.1'>
+          var: {nodeDatum.attributes?.var_red}
+        </text>
+      )}
+      {showType === 3 && nodeDatum.attributes?.num_samples && (
+        <text fill='#777' x='30' dy='20' strokeWidth='0.1'>
+          #sp: {nodeDatum.attributes?.num_samples}
+        </text>
+      )}
+      {nodeDatum.attributes?.leaf_type !== 2 && (
+        <text fill='#777' x='30' dy='40' strokeWidth='0.1'>
           node: {nodeDatum.attributes?.node}
         </text>
       )}
-      {showType === 1 &&
-        nodeDatum.attributes?.gini &&
-        nodeDatum.attributes?.leaf_type !== 2 && (
-          <text fill='#777' x='30' dy='40' strokeWidth='0.1'>
-            gini: {nodeDatum.attributes?.gini}
-          </text>
-        )}
-      {showType === 2 &&
-        nodeDatum.attributes?.var_red &&
-        nodeDatum.attributes?.leaf_type !== 2 && (
-          <text fill='#777' x='30' dy='40' strokeWidth='0.1'>
-            var_red: {nodeDatum.attributes?.var_red}
-          </text>
-        )}
-      {showType === 3 &&
-        nodeDatum.attributes?.num_samples &&
-        nodeDatum.attributes?.leaf_type !== 2 && (
-          <text fill='#777' x='30' dy='40' strokeWidth='0.1'>
-            num_samples: {nodeDatum.attributes?.num_samples}
-          </text>
-        )}
     </g>
   );
 
