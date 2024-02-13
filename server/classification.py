@@ -336,7 +336,6 @@ class DecisionTreeClassifier:
 
     
     def map_value_to_color(self, value, min_value, max_value):
-        print(value,min_value,max_value)
         # Define the color range (light to strong)
         light_color = (232, 244, 248)  # Light blue
         strong_color = (0, 0, 255)      # Strong color (blue)

@@ -12,6 +12,7 @@ import {
   setHasTree,
   setResponseFilename,
 } from 'state';
+import Autocomplete from 'components/Autocomplete';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -49,6 +50,8 @@ const HomePage = () => {
   const [loading, setLoading] = useState(false);
   const [treeData, setTreeData] = useState({});
   const [hasCreationdt, setHasCreationdt] = useState(false);
+  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     show(2);
@@ -72,6 +75,25 @@ const HomePage = () => {
     'set branch node size to',
     'set leaf node color to',
     'set leaf node size to',
+  ];
+
+  const suggestions = [
+    'set features to [column_names separated by comma]',
+    'set target to [column_name]',
+    'set training data size to [train_size]',
+    'set max depth to [max_depth]',
+    'set min samples split to [min_samples_split]',
+    'set node [node_number] to [column_name] with a threshold of [threshold]',
+    'set node [node_number] to one of the following features: [column_names separated by comma]',
+    'set node [node_number] to any feature except the following: [column_names separated by comma]',
+    'remove tree from node [node_number]',
+    'set root node color to [color]',
+    'set root node size to [size]',
+    'set branch node color to [color]',
+    'set branch node size to [size]',
+    'set leaf node color to [color]',
+    'set leaf node size to [size]',
+    'generate',
   ];
 
   const getNumber = (str) => {
@@ -899,13 +921,22 @@ const HomePage = () => {
 
           {/* Input Bar */}
           <div className='flex-shrink-0 p-4 border-t bg-white flex items-center'>
-            <input
+            <Autocomplete
+              suggestions={suggestions}
+              inputValue={inputValue}
+              setInputValue={setInputValue}
+              filteredSuggestions={filteredSuggestions}
+              setFilteredSuggestions={setFilteredSuggestions}
+              setShowSuggestions={setShowSuggestions}
+              showSuggestions={showSuggestions}
+            />
+            {/*<input
               type='text'
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder='Type your message...'
               className='flex-1 p-2 border rounded-l-md'
-            />
+            />*/}
             <button
               onClick={handleSendMessage}
               className={`px-4 py-2 bg-blue-500 text-white rounded-r-md cursor-pointer ${

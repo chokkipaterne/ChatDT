@@ -14,3 +14,22 @@ body,
   overflow-x: hidden;
   background-color: white;
 }
+.suggestion-list {
+  position: absolute !important;
+  bottom: 100%;
+  left: 0;
+  z-index: 999;
+  padding: 0;
+  margin: 0;
+  width: 100% !important;
+  min-width: 100% !important;
+}
+.suggestion-item {
+  cursor: pointer;
+  padding: 5px 0 0 5px;
+  color: #000;
+  background: rgba(255, 255, 255, 1);
+  border: 1px solid #ddd;
+  width: 100% !important;
+  min-width: 100% !important;
+}
