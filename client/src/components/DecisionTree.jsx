@@ -22,7 +22,7 @@ const DecisionTree = (props) => {
   const containerStyles =
     width > 768
       ? {
-          width: '59vw',
+          width: '100vw',
           height: '90vh',
         }
       : {

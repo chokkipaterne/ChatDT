@@ -44,7 +44,7 @@ const HomePage = () => {
 
   //const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  const [sidebar, setSidebar] = useState(false);
+  const [sidebar, setSidebar] = useState(0);
   const [contentSidebar, setContentSidebar] = useState(0);
   const [showType, setShowType] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -470,7 +470,7 @@ const HomePage = () => {
                 })
               );
               setShowType(0);
-              setSidebar(true);
+              setSidebar(1);
               setContentSidebar(3);
             }
           } else if (i === 11) {
@@ -489,7 +489,7 @@ const HomePage = () => {
                 })
               );
               setShowType(0);
-              setSidebar(true);
+              setSidebar(1);
               setContentSidebar(3);
             }
           } else if (i === 12) {
@@ -508,7 +508,7 @@ const HomePage = () => {
                 })
               );
               setShowType(0);
-              setSidebar(true);
+              setSidebar(1);
               setContentSidebar(3);
             }
           } else if (i === 13) {
@@ -527,7 +527,7 @@ const HomePage = () => {
                 })
               );
               setShowType(0);
-              setSidebar(true);
+              setSidebar(1);
               setContentSidebar(3);
             }
           } else if (i === 14) {
@@ -546,7 +546,7 @@ const HomePage = () => {
                 })
               );
               setShowType(0);
-              setSidebar(true);
+              setSidebar(1);
               setContentSidebar(3);
             }
           } else if (i === 15) {
@@ -565,7 +565,7 @@ const HomePage = () => {
                 })
               );
               setShowType(0);
-              setSidebar(true);
+              setSidebar(1);
               setContentSidebar(3);
             }
           }
@@ -618,12 +618,12 @@ const HomePage = () => {
   const displayTree = (msg) => {
     //info: 1, table: 2, tree: 3, back: 4 ... 'reset',
     setTreeData(msg);
-    setSidebar(true);
+    setSidebar(1);
     setContentSidebar(3);
     setShowType(0);
   };
   const show = (value) => {
-    setSidebar(true);
+    setSidebar(1);
     setContentSidebar(value);
   };
   const generateFromInstructions = (message) => {
@@ -764,8 +764,12 @@ const HomePage = () => {
     <div className='w-full pt-5 px-2 absolute -top-5'>
       <div className='flex h-screen pt-16'>
         {/* Left Sidebar */}
-        {sidebar && (
-          <div className='w-full sm:w-full md:w-3/5 p-4 overflow-y-auto overflow-x-auto shadow-md'>
+        {sidebar >= 1 && (
+          <div
+            className={`p-4 overflow-y-auto overflow-x-auto shadow-md ${
+              sidebar === 1 ? 'w-full sm:w-full md:w-3/5' : 'w-full'
+            }`}
+          >
             <div className='avatar placeholder relative top-2 float-right'>
               {contentSidebar === 3 && (
                 <>
@@ -811,10 +815,32 @@ const HomePage = () => {
                   )}
                 </>
               )}
+              {sidebar !== 2 && (
+                <div
+                  className='bg-green-500 text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
+                  onClick={() => {
+                    setSidebar(2);
+                  }}
+                  title='Fullscreen'
+                >
+                  <span className='text-xs'>+</span>
+                </div>
+              )}
+              {sidebar === 2 && (
+                <div
+                  className='bg-green-500 text-white rounded-full w-8 shadow-md cursor-pointer mr-1'
+                  onClick={() => {
+                    setSidebar(1);
+                  }}
+                  title='Zoom out'
+                >
+                  <span className='text-xs'>-</span>
+                </div>
+              )}
               <div
                 className='bg-red-500 text-white rounded-full w-8 shadow-md cursor-pointer'
                 onClick={() => {
-                  setSidebar(false);
+                  setSidebar(0);
                 }}
                 title='Close sidebar'
               >

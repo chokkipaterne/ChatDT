@@ -205,8 +205,14 @@ const FileUpload = () => {
             )}
           </div>
         </div>
-        <p className='max-w-xl mt-1 text-md text-slate-600 mx-auto px-1 py-5'>
+        <p className='max-w-xl mt-1 text-lg text-slate-600 mx-auto px-1 py-5'>
           OR use one of the following demo datasets:
+          <br />
+          <span className='text-sm'>
+            <i>
+              More details about the datasets can be found on the About page
+            </i>
+          </span>
         </p>
         <div className='pb-5'>
           <button
