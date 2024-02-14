@@ -38,9 +38,10 @@ const FileUpload = () => {
     borderColor: '#ff1744',
   };
 
-  const demoDataset = async () => {
+  const demoDataset = async (demo_dataset) => {
     setDisabled(true);
     const formData = new FormData();
+    formData.append('demo_dataset', demo_dataset);
     try {
       const endpoint = `${process.env.REACT_APP_API_URL}demo`;
       const savedFileResponse = await fetch(endpoint, {
@@ -204,19 +205,49 @@ const FileUpload = () => {
             )}
           </div>
         </div>
-        <p className='max-w-xl mt-1 text-xl text-slate-600 mx-auto px-1 py-5'>
-          OR
+        <p className='max-w-xl mt-1 text-md text-slate-600 mx-auto px-1 py-5'>
+          OR use one of the following demo datasets:
         </p>
         <div className='pb-5'>
           <button
-            className={`btn rounded-full btn-wide btn-primary ${
+            className={`btn ml-2 mb-2 rounded-full btn-md btn-primary ${
               disabled ? 'btn-disabled' : ''
             }`}
             onClick={async () => {
-              await demoDataset();
+              await demoDataset('demo_iris.csv');
             }}
           >
-            Use demo dataset (iris.csv)
+            iris.csv
+          </button>
+          <button
+            className={`btn ml-2 mb-2 rounded-full btn-md btn-primary ${
+              disabled ? 'btn-disabled' : ''
+            }`}
+            onClick={async () => {
+              await demoDataset('demo_breast_cancer.csv');
+            }}
+          >
+            breast_cancer.csv
+          </button>
+          <button
+            className={`btn ml-2 mb-2 rounded-full btn-md btn-primary ${
+              disabled ? 'btn-disabled' : ''
+            }`}
+            onClick={async () => {
+              await demoDataset('demo_glass_identification.csv');
+            }}
+          >
+            glass_identification.csv
+          </button>
+          <button
+            className={`btn ml-2 mb-2 rounded-full btn-md btn-primary ${
+              disabled ? 'btn-disabled' : ''
+            }`}
+            onClick={async () => {
+              await demoDataset('demo_wine_quality.csv');
+            }}
+          >
+            wine_quality.csv
           </button>
         </div>
       </div>

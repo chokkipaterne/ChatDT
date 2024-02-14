@@ -20,6 +20,53 @@ const AboutPage = () => {
           </p>
 
           <Instructions />
+
+          <p className='text-xl font-semibold'>Demo datasets</p>
+          <div className='pt-2 pl-3'>
+            <ul className='list-disc pl-2'>
+              <li className='mb-2'>
+                <b>Wine quality: </b>
+                <a
+                  className='link'
+                  href='https://archive.ics.uci.edu/dataset/186/wine+quality'
+                  target='_blank'
+                >
+                  https://archive.ics.uci.edu/dataset/186/wine+quality
+                </a>
+              </li>
+              <li className='mb-2'>
+                <b>Breast cancer: </b>
+                <a
+                  className='link'
+                  href='https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic'
+                  target='_blank'
+                >
+                  https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic
+                </a>
+              </li>
+              <li className='mb-2'>
+                <b>Glass identification: </b>
+                <a
+                  className='link'
+                  href='https://archive.ics.uci.edu/dataset/42/glass+identification'
+                  target='_blank'
+                >
+                  https://archive.ics.uci.edu/dataset/42/glass+identification
+                </a>
+              </li>
+              <li className='mb-2'>
+                <b>Iris: </b>
+                <a
+                  className='link'
+                  href='https://archive.ics.uci.edu/dataset/53/iris'
+                  target='_blank'
+                >
+                  https://archive.ics.uci.edu/dataset/53/iris
+                </a>
+              </li>
+            </ul>
+          </div>
+
           <p className='text-xl font-semibold'>Contact us</p>
           <p>
             Any issues or suggestions, feel free to{' '}

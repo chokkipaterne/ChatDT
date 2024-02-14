@@ -63,8 +63,8 @@ def upload_file(uploaded_file: UploadFile = File(...)):
     }
 
 @api.post('/demo')
-def demo():
-    demo_dataset = "demo_iris.csv"
+def demo(demo_dataset: str = Form(...)):
+    #demo_dataset = "demo_iris.csv"
     path = f"uploads/shuffle_{demo_dataset}"
 
     df = pd.read_csv(path)
@@ -129,8 +129,7 @@ async def process_data(filename: str = Form(...), rep_filename: str = Form(...),
 async def remove_data(filename: str = Form(...)):
     try:
         # Call the main function with provided parameters
-        demo_dataset = "demo_iris.csv"
-        if(filename==demo_dataset) :
+        if("demo" in filename) :
             result = {'remove': 1}
         else:
             result = remove_files(filename)
