@@ -33,15 +33,22 @@ const Autocomplete = ({
     if (value.toLowerCase() === '') {
       filtered = [];
     } else {
-      let words = value.split(' ');
-      let last_word = words[words.length - 1].trim();
-      console.log();
-      filtered = suggestions.filter(
-        (suggestion) =>
-          suggestion.toLowerCase().includes(value.toLowerCase()) ||
-          (last_word.includes('@') &&
-            suggestion.toLowerCase().includes(last_word.toLowerCase()))
-      );
+      filtered = suggestions.filter((suggestion) => {
+        let words = value.split(' ');
+        let find = false;
+        for (let i = 0; i < words.length; i++) {
+          let myword = words[i].trim();
+          if (
+            myword.includes('@') &&
+            suggestion.toLowerCase().includes(myword.toLowerCase())
+          ) {
+            find = true;
+            break;
+          }
+        }
+
+        return suggestion.toLowerCase().includes(value.toLowerCase()) || find;
+      });
     }
     setFilteredSuggestions(filtered);
     setShowSuggestions(true);
@@ -69,9 +76,22 @@ const Autocomplete = ({
   };
 
   const handleSuggestionClick = (suggestion) => {
+    if (!suggestion || suggestion.length == 0 || suggestion == undefined) {
+      return;
+    }
     if (suggestion.includes('@')) {
       let inptval = inputValue;
-      suggestion = inptval + suggestion;
+      let words = inptval.split(' ');
+      for (let i = 0; i < words.length; i++) {
+        let myword = words[i].trim();
+        if (
+          myword.includes('@') &&
+          suggestion.toLowerCase().includes(myword.toLowerCase())
+        ) {
+          inptval = inptval.replaceAll(myword, suggestion);
+        }
+      }
+      suggestion = inptval;
     }
     suggestion = suggestion.replaceAll('@', '');
     suggestion = removeWordsInBrackets(suggestion);

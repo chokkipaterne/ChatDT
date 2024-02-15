@@ -49,7 +49,7 @@ const HomePage = () => {
   const [showType, setShowType] = useState(0);
   const [loading, setLoading] = useState(false);
   const [treeData, setTreeData] = useState({});
-  const [hasCreationdt, setHasCreationdt] = useState(false);
+  const [hasCreationdt, setHasCreationdt] = useState(0);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [autoGenerate, setAutoGenerate] = useState(0);
@@ -209,7 +209,7 @@ const HomePage = () => {
         );
         displayTree(msg);
         scrollToBottom();
-        setHasCreationdt(false);
+        setHasCreationdt(0);
         console.log('Tree generated successfully');
       } else {
         console.error('Failed to generate tree');
@@ -263,6 +263,7 @@ const HomePage = () => {
       );
 
       let findMatch = false;
+      let bad = false;
       let i = -1;
       for (i = 0; i < instructionsArray.length; i++) {
         if (value.toLowerCase().includes(instructionsArray[i].toLowerCase())) {
@@ -271,6 +272,23 @@ const HomePage = () => {
             findMatch = true;
             setLoading(true);
             await generateTree();
+          } else if (
+            (hasCreationdt === 1 && i >= 6 && i <= 15) ||
+            (hasCreationdt === 2 && i <= 5 && i !== 4)
+          ) {
+            bad = true;
+            dispatch(
+              addMessage({
+                text: 'You cannot mix the commands used for decision tree creation and modification.',
+                sender: 'bot',
+                info: true,
+                table: true,
+                tree: false,
+                back: null,
+              })
+            );
+            scrollToBottom();
+            setInputValue('');
           } else if (i === 0) {
             //features
             const cols = getColumns(str);
@@ -327,24 +345,10 @@ const HomePage = () => {
               );
             }
           } else if (!has_tree && i >= 6 && i <= 15) {
-            findMatch = true;
+            bad = true;
             dispatch(
               addMessage({
                 text: 'This command can only be used after generating a decision tree.',
-                sender: 'bot',
-                info: true,
-                table: true,
-                tree: false,
-                back: null,
-              })
-            );
-            scrollToBottom();
-            setInputValue('');
-          } else if (hasCreationdt && i >= 6 && i <= 15) {
-            findMatch = true;
-            dispatch(
-              addMessage({
-                text: 'You cannot mix the commands used for decision tree creation and modification.',
                 sender: 'bot',
                 info: true,
                 table: true,
@@ -608,7 +612,7 @@ const HomePage = () => {
           break;
         }
       }
-      if (!findMatch) {
+      if (!findMatch && !bad) {
         dispatch(
           addMessage({
             text: 'I am not able to understand your request. Click on "i" to get more instructions about the commands to use to interact with me.',
@@ -621,9 +625,12 @@ const HomePage = () => {
         );
       }
       if (findMatch && i <= 5 && i !== 4) {
-        setHasCreationdt(true);
+        setHasCreationdt(1);
       }
-      if (findMatch && i >= 6 && i <= 9) {
+      if (findMatch && i >= 6 && i <= 15) {
+        setHasCreationdt(2);
+      }
+      if (findMatch && i >= 6 && i <= 9 && hasCreationdt === 1) {
         autogenerate = 1;
       }
       if (has_tree && i >= 10 && i <= 15) {
@@ -640,6 +647,7 @@ const HomePage = () => {
       }
       scrollToBottom();
       setInputValue('');
+      setHasCreationdt(0);
       //console.log(messages);
     }
     //return autogenerate;
