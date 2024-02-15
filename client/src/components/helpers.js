@@ -7,7 +7,7 @@ export const useCenteredTree = (defaultTranslate = { x: 150, y: 60 }) => {
     if (containerElem !== null) {
       let { width, height } = containerElem.getBoundingClientRect();
 
-      console.log(width, height);
+      //console.log(width, height);
       setDimensions({ width, height });
       setTranslate({ x: (2 * width) / 6, y: 60 });
     }

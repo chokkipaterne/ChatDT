@@ -58,9 +58,14 @@ const DecisionTree = (props) => {
     return () => {
       document.head.removeChild(styleElement);
     };
-  }, [tree_layout, showType]); // Run effect whenever 'color' state changes
+  }, [tree_layout]); // Run effect whenever 'color' state changes
 
-  const renderRectSvgNode = ({ nodeDatum, toggleNode }) => (
+  const onNodeMouseOver = (evt) => {
+    console.log('hello');
+    console.log(evt);
+  };
+
+  const renderCircleSvgNode = ({ nodeDatum, toggleNode }) => (
     <g>
       <circle
         r='20'
@@ -140,26 +145,31 @@ const DecisionTree = (props) => {
   };
   //const modifiedData = removePropertiesRecursive(treeData.output);
   const [dimensions, translate, containerRef] = useCenteredTree();
+  const scaleExtent = { min: 0, max: 10 };
+  const defaultTranslate = width > 768 ? { x: 350, y: 60 } : { x: 150, y: 60 };
   return (
     <div style={containerStyles} ref={containerRef}>
       {showType === 0 && (
         <Tree
           data={removePropertiesRecursive(treeData.output)}
-          dimensions={dimensions}
-          translate={translate}
+          translate={defaultTranslate}
           orientation='vertical'
           rootNodeClassName='node__root'
           branchNodeClassName='node__branch'
           leafNodeClassName='node__leaf'
+          scaleExtent={scaleExtent}
+          zoomable={true}
+          onNodeMouseOver={onNodeMouseOver}
         />
       )}
       {showType > 0 && (
         <Tree
           data={treeData.output}
-          dimensions={dimensions}
-          translate={translate}
+          translate={defaultTranslate}
           orientation='vertical'
-          renderCustomNodeElement={renderRectSvgNode}
+          renderCustomNodeElement={renderCircleSvgNode}
+          scaleExtent={scaleExtent}
+          zoomable={true}
         />
       )}
     </div>

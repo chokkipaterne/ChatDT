@@ -203,7 +203,7 @@ class DecisionTreeRegression:
 
         if constraints_respected:
             idx, thr, var_red = self._best_split(X, y)
-            if idx is not None and var_red > 0:
+            if idx is not None and var_red is not None:
                 indices_left = X[:, idx] < thr
                 X_left, y_left = X[indices_left], y[indices_left]
                 X_right, y_right = X[~indices_left], y[~indices_left]
@@ -234,7 +234,7 @@ class DecisionTreeRegression:
     def _best_split(self, X, y, good_feature_index=[]):
         ''' function to find the best split '''
         # dictionary to store the best split
-        best_idx, best_thr, best_var_red = None, None, -float("inf")
+        best_idx, best_thr, best_var_red = None, None, None
         max_var_red = -float("inf")
         # Loop through all features.
         if len(good_feature_index)==0: 

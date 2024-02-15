@@ -24,7 +24,7 @@ const AboutPage = () => {
           <p className='text-xl font-semibold'>Demo datasets</p>
           <div className='pt-2 pl-3'>
             <ul className='list-disc pl-2'>
-              <li className='mb-2'>
+              <li key='30' className='mb-2'>
                 <b>Wine quality: </b>
                 <a
                   className='link'
@@ -34,7 +34,7 @@ const AboutPage = () => {
                   https://archive.ics.uci.edu/dataset/186/wine+quality
                 </a>
               </li>
-              <li className='mb-2'>
+              <li key='40' className='mb-2'>
                 <b>Breast cancer: </b>
                 <a
                   className='link'
@@ -44,7 +44,7 @@ const AboutPage = () => {
                   https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic
                 </a>
               </li>
-              <li className='mb-2'>
+              <li key='50' className='mb-2'>
                 <b>Glass identification: </b>
                 <a
                   className='link'
@@ -54,7 +54,7 @@ const AboutPage = () => {
                   https://archive.ics.uci.edu/dataset/42/glass+identification
                 </a>
               </li>
-              <li className='mb-2'>
+              <li key='60' className='mb-2'>
                 <b>Iris: </b>
                 <a
                   className='link'

@@ -52,6 +52,17 @@ const HomePage = () => {
   const [hasCreationdt, setHasCreationdt] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [autoGenerate, setAutoGenerate] = useState(0);
+
+  useEffect(() => {
+    if (autoGenerate === 1) {
+      setLoading(true);
+      generateTree();
+      setAutoGenerate(0);
+    }
+  }, [autoGenerate]);
+
+  let suggestions = [];
 
   useEffect(() => {
     show(2);
@@ -75,9 +86,10 @@ const HomePage = () => {
     'set branch node size to',
     'set leaf node color to',
     'set leaf node size to',
+    'help',
   ];
 
-  const suggestions = [
+  const initsuggestions = [
     'set features to [column_names separated by comma]',
     'set target to [column_name]',
     'set training data size to [train_size]',
@@ -94,7 +106,16 @@ const HomePage = () => {
     'set leaf node color to [color]',
     'set leaf node size to [size]',
     'generate',
+    'help',
   ];
+
+  const getSuggestions = () => {
+    suggestions = [...initsuggestions];
+    for (let j = 0; j < columns.length; j++) {
+      suggestions.push('@' + columns[j]);
+    }
+    return suggestions;
+  };
 
   const getNumber = (str) => {
     const regex = /[+-]?\d+(\.\d+)?/g;
@@ -227,6 +248,7 @@ const HomePage = () => {
   };
 
   const handleSendMessage = async () => {
+    let autogenerate = 0;
     if (inputValue.trim() !== '') {
       const value = inputValue.trim();
       dispatch(
@@ -239,6 +261,7 @@ const HomePage = () => {
           back: null,
         })
       );
+
       let findMatch = false;
       let i = -1;
       for (i = 0; i < instructionsArray.length; i++) {
@@ -273,7 +296,7 @@ const HomePage = () => {
           } else if (i === 2) {
             //max_depth
             const num = getNumber(str);
-            if (num) {
+            if (num > 0) {
               findMatch = true;
               dispatch(
                 updateInstructions({
@@ -284,7 +307,7 @@ const HomePage = () => {
           } else if (i === 3) {
             //min_samples_split
             const num = getNumber(str);
-            if (num) {
+            if (num > 0) {
               findMatch = true;
               dispatch(
                 updateInstructions({
@@ -295,7 +318,7 @@ const HomePage = () => {
           } else if (i === 5) {
             //train_size
             const num = getNumber(str);
-            if (num) {
+            if (num > 0) {
               findMatch = true;
               dispatch(
                 updateInstructions({
@@ -338,7 +361,7 @@ const HomePage = () => {
             let parts2 = parts[1].split('with');
             const cols = getColumns(parts2[0]);
             const threshold = getNumber(parts2[1]);
-            if (node_number && threshold && cols.length > 0) {
+            if (node_number >= 0 && threshold !== 0 && cols.length > 0) {
               findMatch = true;
               const instructs = { ...instructions };
               if (!('nodes_constraints' in instructs)) {
@@ -371,7 +394,7 @@ const HomePage = () => {
             const node_number = getNumber(parts[0]);
             let parts2 = parts[1].split('features:');
             const cols = getColumns(parts2[1]);
-            if (node_number && cols.length > 0) {
+            if (node_number >= 0 && cols.length > 0) {
               findMatch = true;
               let instructs = { ...instructions };
               if (!('nodes_constraints' in instructs)) {
@@ -402,7 +425,7 @@ const HomePage = () => {
             const node_number = getNumber(parts[0]);
             let parts2 = parts[1].split('following:');
             const cols = getColumns(parts2[1]);
-            if (node_number && cols.length > 0) {
+            if (node_number >= 0 && cols.length > 0) {
               findMatch = true;
               let instructs = { ...instructions };
               if (!('nodes_constraints' in instructs)) {
@@ -430,7 +453,7 @@ const HomePage = () => {
           } else if (i === 9) {
             //remove tree
             let node_number = getNumber(str);
-            if (node_number) {
+            if (node_number >= 0) {
               findMatch = true;
               let instructs = { ...instructions };
               if (!('nodes_constraints' in instructs)) {
@@ -476,7 +499,7 @@ const HomePage = () => {
           } else if (i === 11) {
             //root node color
             const num = getNumber(str);
-            if (num) {
+            if (num >= 0) {
               findMatch = true;
               dispatch(
                 updateTreeLayout({
@@ -512,9 +535,9 @@ const HomePage = () => {
               setContentSidebar(3);
             }
           } else if (i === 13) {
-            //branch node color
+            //branch node size
             const num = getNumber(str);
-            if (num) {
+            if (num >= 0) {
               findMatch = true;
               dispatch(
                 updateTreeLayout({
@@ -550,9 +573,9 @@ const HomePage = () => {
               setContentSidebar(3);
             }
           } else if (i === 15) {
-            //root leaf color
+            //root leaf size
             const num = getNumber(str);
-            if (num) {
+            if (num >= 0) {
               findMatch = true;
               dispatch(
                 updateTreeLayout({
@@ -568,6 +591,19 @@ const HomePage = () => {
               setSidebar(1);
               setContentSidebar(3);
             }
+          } else if (i === 16) {
+            //help
+            findMatch = true;
+            dispatch(
+              addMessage({
+                text: 'instructions',
+                sender: 'bot',
+                info: false,
+                table: true,
+                tree: false,
+                back: null,
+              })
+            );
           }
           break;
         }
@@ -587,17 +623,10 @@ const HomePage = () => {
       if (findMatch && i <= 5 && i !== 4) {
         setHasCreationdt(true);
       }
+      if (findMatch && i >= 6 && i <= 9) {
+        autogenerate = 1;
+      }
       if (has_tree && i >= 10 && i <= 15) {
-        dispatch(
-          addMessage({
-            text: 'generate',
-            sender: 'user',
-            info: false,
-            table: false,
-            tree: false,
-            back: null,
-          })
-        );
         dispatch(
           addMessage({
             text: 'Layout of decision tree updated',
@@ -613,6 +642,8 @@ const HomePage = () => {
       setInputValue('');
       //console.log(messages);
     }
+    //return autogenerate;
+    setAutoGenerate(autogenerate);
   };
 
   const displayTree = (msg) => {
@@ -880,7 +911,10 @@ const HomePage = () => {
                     message.sender === 'user' ? 'chat-bubble-primary' : ''
                   }`}
                 >
-                  {message.text}
+                  {message.text === 'instructions' && (
+                    <Instructions showGroup={0} />
+                  )}
+                  {message.text !== 'instructions' && <>{message.text}</>}
                 </div>
 
                 {message.sender === 'bot' && (
@@ -948,13 +982,14 @@ const HomePage = () => {
           {/* Input Bar */}
           <div className='flex-shrink-0 p-4 border-t bg-white flex items-center'>
             <Autocomplete
-              suggestions={suggestions}
+              suggestions={getSuggestions()}
               inputValue={inputValue}
               setInputValue={setInputValue}
               filteredSuggestions={filteredSuggestions}
               setFilteredSuggestions={setFilteredSuggestions}
               setShowSuggestions={setShowSuggestions}
               showSuggestions={showSuggestions}
+              handleSendMessage={handleSendMessage}
             />
             {/*<input
               type='text'

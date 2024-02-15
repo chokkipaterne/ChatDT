@@ -33,3 +33,6 @@ body,
   width: 100% !important;
   min-width: 100% !important;
 }
+.item-active {
+  background: rgb(197, 197, 197, 1) !important;
+}
