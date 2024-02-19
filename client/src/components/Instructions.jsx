@@ -73,9 +73,8 @@ const Instructions = ({ showGroup = 1 }) => {
                   {index === 15 && (
                     <p className='-ml-4'>
                       <b>
-                        This command should be called to create or update a
-                        decision tree after the user sets up its
-                        settings/constraints
+                        This command should be called to create a decision tree
+                        after the user sets up its settings/constraints
                       </b>
                     </p>
                   )}
