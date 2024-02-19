@@ -62,6 +62,8 @@ def generate_tree(filename, constraints={}, rep_filename=None):
         features = constraints["features"]
     if "target" in constraints:
         target = constraints["target"]
+    if target in features:
+        features.remove(target)
     
     
     df_target = df[target]

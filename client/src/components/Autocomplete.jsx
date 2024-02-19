@@ -115,7 +115,7 @@ const Autocomplete = ({
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         onBlur={handleInputBlur}
-        placeholder='Type something...'
+        placeholder='Begin typing for example set or remove or help ...'
         className='border p-2 rounded-l-md w-full'
       />
       {showSuggestions && (

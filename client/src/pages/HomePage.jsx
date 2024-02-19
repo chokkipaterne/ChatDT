@@ -630,7 +630,7 @@ const HomePage = () => {
       if (findMatch && i >= 6 && i <= 15) {
         setHasCreationdt(2);
       }
-      if (findMatch && i >= 6 && i <= 9 && hasCreationdt === 1) {
+      if (findMatch && i >= 6 && i <= 9 && hasCreationdt !== 1) {
         autogenerate = 1;
       }
       if (has_tree && i >= 10 && i <= 15) {
@@ -644,10 +644,10 @@ const HomePage = () => {
             back: null,
           })
         );
+        setHasCreationdt(0);
       }
       scrollToBottom();
       setInputValue('');
-      setHasCreationdt(0);
       //console.log(messages);
     }
     //return autogenerate;
