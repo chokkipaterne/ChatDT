@@ -18,6 +18,8 @@ const initialState = {
   tree_layout: init_tree_layout,
   has_tree: false,
   response_filename: null,
+  unique_values: {},
+  unique_vals: [],
 };
 
 export const dtSlice = createSlice({
@@ -34,6 +36,8 @@ export const dtSlice = createSlice({
       state.tree_layout = init_tree_layout;
       state.has_tree = action.payload.has_tree;
       state.response_filename = null;
+      state.unique_values = {};
+      state.unique_vals = [];
     },
     setDtfile: (state, action) => {
       state.dtfile = action.payload.dtfile;
@@ -65,6 +69,12 @@ export const dtSlice = createSlice({
     setInstructions: (state, action) => {
       state.instructions = action.payload.instructions;
     },
+    setUniqueValues: (state, action) => {
+      state.unique_values = action.payload.unique_values;
+    },
+    setUniqueVals: (state, action) => {
+      state.unique_vals = action.payload.unique_vals;
+    },
     updateInstructions: (state, action) => {
       state.instructions = { ...state.instructions, ...action.payload };
     },
@@ -81,6 +91,8 @@ export const dtSlice = createSlice({
       state.tree_layout = init_tree_layout;
       state.has_tree = false;
       state.response_filename = null;
+      state.unique_values = {};
+      state.unique_vals = [];
     },
   },
 });
@@ -100,5 +112,7 @@ export const {
   updateTreeLayout,
   addMessage,
   updateInstructions,
+  setUniqueValues,
+  setUniqueVals,
 } = dtSlice.actions;
 export default dtSlice.reducer;

@@ -10,10 +10,11 @@ left_nodes = []
 right_nodes = []
 
 class DecisionTreeClassifier:
-    def __init__(self, constraints={}, features={}, dict_tree={}):
+    def __init__(self, constraints={}, features={}, dict_tree={}, ftypes=[]):
         self.constraints = constraints
         self.features = features
         self.dict_tree = dict_tree
+        self.ftypes = ftypes
         self.min_num_samples = float("inf")
         self.max_num_samples = -float("inf")
         self.min_gini = float("inf")
@@ -49,6 +50,7 @@ class DecisionTreeClassifier:
         class within the node. Since Σ p = 1, this is equivalent to 1 - Σ p^2.
         """
         m = y.size
+        if m == 0 : return 0
         return 1.0 - sum((np.sum(y == c) / m) ** 2 for c in range(self.n_classes_))
 
     def _best_split(self, X, y, good_feature_index=[]):
@@ -86,6 +88,8 @@ class DecisionTreeClassifier:
         for idx in good_feature_index:
             # Sort data along selected feature.
             thresholds, classes = zip(*sorted(zip(X[:, idx], y)))
+            #thresholds = tuple(set(thresholds))
+            #classes = tuple(set(classes))
 
             # We could actually split the node according to each feature/threshold pair
             # and count the resulting population for each class in the children, but
@@ -117,7 +121,10 @@ class DecisionTreeClassifier:
                 if gini < best_gini:
                     best_gini = gini
                     best_idx = idx
-                    best_thr = (thresholds[i] + thresholds[i - 1]) / 2  # midpoint
+                    if not self.ftypes[idx]:
+                        best_thr = (thresholds[i] + thresholds[i - 1]) / 2  # midpoint
+                    else:
+                        best_thr = thresholds[i]
                     #best_thr = math.floor(best_thr*100)/100
 
         return best_idx, best_thr
@@ -140,6 +147,11 @@ class DecisionTreeClassifier:
         thr = dict_tree["threshold"]
         if idx is not None:
             node.feature_index = idx
+            node.is_categorical = int(self.ftypes[idx])
+            if not self.ftypes[idx]:
+                node.operator = '<'
+            else:
+                node.operator = '='
             node.threshold = thr
             node.ref_init = dict_tree["ref"]
             node.left = self._load_tree(dict_tree["left"] if ("left" in dict_tree and dict_tree["left"] and dict_tree["left"] != "") else None)
@@ -178,14 +190,17 @@ class DecisionTreeClassifier:
                             node = None
                 if "yes" in nodes_constraints:
                     for value in nodes_constraints["yes"]:
-                        rep = value.split(",")
+                        rep = value.split(",", 1)
                         feature_name = rep[0]
                         feature_num = self.features.index(feature_name)
                         yes_features_index.append(feature_num)
                         if len(rep) == 2:
                             idx = feature_num
-                            thr = float(rep[1])
-        
+                            if not self.ftypes[idx]:
+                                thr = float(rep[1])
+                            else:
+                                thr = rep[1]
+
         good_feature_index = yes_features_index.copy()
         if len(yes_features_index) == 0:
             for index in range(self.n_features_):
@@ -223,7 +238,22 @@ class DecisionTreeClassifier:
             if idx is None and thr is None:
                 idx, thr = self._best_split(X, y, good_feature_index)
             if idx is not None:
-                indices_left = X[:, idx] < thr
+                node.is_categorical = int(self.ftypes[idx])
+                if not self.ftypes[idx]:
+                    indices_left = X[:, idx] < thr
+                    node.operator = '<'
+                else:
+                    node.operator = '='
+                    array_thr = thr.strip().split(",")
+                    indices_left = None
+                    for v in array_thr:
+                        v = v.strip()
+                        if indices_left is None:
+                            indices_left = (X[:, idx] == v)
+                        else:
+                            indices_left = indices_left | (X[:, idx] == v)
+                    indices_left = (indices_left)
+
                 X_left, y_left = X[indices_left], y[indices_left]
                 X_right, y_right = X[~indices_left], y[~indices_left]
                 node.feature_index = idx
@@ -281,7 +311,23 @@ class DecisionTreeClassifier:
         if constraints_respected:
             idx, thr = self._best_split(X, y)
             if idx is not None:
-                indices_left = X[:, idx] < thr
+                #indices_left = X[:, idx] < thr
+                node.is_categorical = int(self.ftypes[idx])
+                if not self.ftypes[idx]:
+                    indices_left = X[:, idx] < thr
+                    node.operator = '<'
+                else:
+                    node.operator = '='
+                    array_thr = thr.strip().split(",")
+                    indices_left = None
+                    for v in array_thr:
+                        v = v.strip()
+                        if indices_left is None:
+                            indices_left = (X[:, idx] == v)
+                        else:
+                            indices_left = indices_left | (X[:, idx] == v)
+                    indices_left = (indices_left)
+
                 X_left, y_left = X[indices_left], y[indices_left]
                 X_right, y_right = X[~indices_left], y[~indices_left]
                 node.feature_index = idx
@@ -311,10 +357,18 @@ class DecisionTreeClassifier:
         """Predict class for a single sample."""
         node = self.tree_
         while node.left:
-            if inputs[node.feature_index] < node.threshold:
-                node = node.left
+            if not node.is_categorical:
+                if inputs[node.feature_index] < node.threshold:
+                    node = node.left
+                else:
+                    node = node.right
             else:
-                node = node.right
+                array_thr = node.threshold.strip().split(",")
+                array_thr = [s.strip() for s in array_thr]
+                if inputs[node.feature_index].strip() in array_thr:
+                    node = node.left
+                else:
+                    node = node.right
         return node.predicted_class
     
     def calculate_accuracy(self, Y_test, Y_pred):
@@ -368,9 +422,14 @@ class DecisionTreeClassifier:
         
         output = {}
         if mydict['left']:
-            threshold = str(format(mydict['threshold'], ".2f"))
             #threshold = str(mydict['threshold'])
-            output['name'] = feature_names[mydict['feature_index']] + "<" + threshold
+            if not mydict['is_categorical']:
+                threshold = str(format(mydict['threshold'], ".2f"))
+                output['name'] = feature_names[mydict['feature_index']] + "<" + threshold
+            else:
+                array_thr = mydict['threshold'].strip().split(",")
+                output['name'] = feature_names[mydict['feature_index']] + "=" + ' or '.join(array_thr)
+            
             gini = float(format(mydict['gini'], ".2f"))
             #gini = mydict['gini']
             output['attributes'] = {
@@ -414,7 +473,12 @@ class DecisionTreeClassifier:
         if not dict['right']:
             print(class_names[dict['predicted_class']])
         else:
-            print(feature_names[dict['feature_index']]+ "<"+ str(float(dict['threshold']))+ "?"+ str(float(dict['gini'])))
+            if not dict['is_categorical']:
+                print(feature_names[dict['feature_index']]+ "<"+ str(float(dict['threshold']))+ "?"+ str(float(dict['gini'])))
+            else:
+                array_thr = dict['threshold'].strip().split(",")
+                print(feature_names[dict['feature_index']]+ "="+' or '.join(array_thr)+ "?"+ str(float(dict['gini'])))
+
             print("%sleft:" % (indent), end="")
             self.print_tree(feature_names, class_names, dict['left'], indent + " ")
             print("%sright:" % (indent), end="")
@@ -429,9 +493,19 @@ class DecisionTreeClassifier:
         if not dict['right']:
             return str(class_names[dict['predicted_class']]) + "\n"
         else:
-            return feature_names[dict['feature_index']]+ "<"+ str(float(dict['threshold']))+ "?"+ str(float(dict['gini']))+ "\n" \
-            + str("%sleft:" % (indent)) \
-            + self.string_tree(feature_names, class_names, dict['left'], indent + " ") \
-            + str("%sright:" % (indent)) \
-            + self.string_tree(feature_names, class_names, dict['right'], indent + " ")
+            if not dict['is_categorical']:
+                return feature_names[dict['feature_index']]+ "<"+ str(float(dict['threshold']))+ "?"+ str(float(dict['gini']))+ "\n" \
+                + str("%sleft:" % (indent)) \
+                + self.string_tree(feature_names, class_names, dict['left'], indent + " ") \
+                + str("%sright:" % (indent)) \
+                + self.string_tree(feature_names, class_names, dict['right'], indent + " ")
+            else:
+                array_thr = dict['threshold'].strip().split(",")
+                return feature_names[dict['feature_index']]+ "="+' or '.join(array_thr)+ "?"+ str(float(dict['gini']))+ "\n" \
+                + str("%sleft:" % (indent)) \
+                + self.string_tree(feature_names, class_names, dict['left'], indent + " ") \
+                + str("%sright:" % (indent)) \
+                + self.string_tree(feature_names, class_names, dict['right'], indent + " ")
+
+           
     

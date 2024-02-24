@@ -255,6 +255,26 @@ const FileUpload = () => {
           >
             wine_quality.csv
           </button>
+          <button
+            className={`btn ml-2 mb-2 rounded-full btn-md btn-primary ${
+              disabled ? 'btn-disabled' : ''
+            }`}
+            onClick={async () => {
+              await demoDataset('demo_adult.csv');
+            }}
+          >
+            adult.csv
+          </button>
+          <button
+            className={`btn ml-2 mb-2 rounded-full btn-md btn-primary ${
+              disabled ? 'btn-disabled' : ''
+            }`}
+            onClick={async () => {
+              await demoDataset('demo_student.csv');
+            }}
+          >
+            student.csv
+          </button>
         </div>
       </div>
     </div>

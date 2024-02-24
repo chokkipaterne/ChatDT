@@ -9,6 +9,7 @@ const Autocomplete = ({
   setShowSuggestions,
   showSuggestions,
   handleSendMessage,
+  loading,
 }) => {
   const [suggestionClicked, setSuggestionClicked] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -76,7 +77,7 @@ const Autocomplete = ({
   };
 
   const handleSuggestionClick = (suggestion) => {
-    if (!suggestion || suggestion.length == 0 || suggestion == undefined) {
+    if (!suggestion || suggestion.length === 0 || suggestion === undefined) {
       return;
     }
     if (suggestion.includes('@')) {
@@ -93,6 +94,7 @@ const Autocomplete = ({
       }
       suggestion = inptval;
     }
+    suggestion = suggestion.replace(/@.*#/, '');
     suggestion = suggestion.replaceAll('@', '');
     suggestion = removeWordsInBrackets(suggestion);
     setInputValue(suggestion);
@@ -117,6 +119,7 @@ const Autocomplete = ({
         onBlur={handleInputBlur}
         placeholder='Begin typing for example set or generate or remove or help or @ ...'
         className='border p-2 rounded-l-md w-full'
+        disabled={loading}
       />
       {showSuggestions && (
         <ul className='suggestion-list'>

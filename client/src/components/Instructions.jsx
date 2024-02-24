@@ -5,7 +5,7 @@ const Instructions = ({ showGroup = 1 }) => {
     'set training data size to [train_size] : by default 0.7 (i.e., 70%)',
     'set max depth to [max_depth]',
     'set min samples split to [min_samples_split]',
-    'set node [node_number] to [column_name] with a threshold of [threshold]',
+    'set node [node_number] to [column_name] with a threshold of [threshold]: threshold can be a numerical value if the column is numerical, or it can be one or multiple categories of the column if the column is categorical',
     'set node [node_number] to one of the following features: [column_names separated by comma]',
     'set node [node_number] to any feature except the following: [column_names separated by comma]',
     'remove tree from node [node_number]',

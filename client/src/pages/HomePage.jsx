@@ -11,6 +11,8 @@ import {
   updateTreeLayout,
   setHasTree,
   setResponseFilename,
+  setUniqueValues,
+  setUniqueVals,
 } from 'state';
 import Autocomplete from 'components/Autocomplete';
 
@@ -35,6 +37,8 @@ const HomePage = () => {
   const columns = useSelector((state) => state.columns);
   const response_filename = useSelector((state) => state.response_filename);
   const has_tree = useSelector((state) => state.has_tree);
+  const unique_values = useSelector((state) => state.unique_values);
+  const unique_vals = useSelector((state) => state.unique_vals);
 
   useEffect(() => {
     if (dtfile === null) {
@@ -61,6 +65,10 @@ const HomePage = () => {
       setAutoGenerate(0);
     }
   }, [autoGenerate]);
+
+  useEffect(() => {
+    getSuggestions();
+  }, [unique_vals]);
 
   let suggestions = [];
 
@@ -114,6 +122,9 @@ const HomePage = () => {
     for (let j = 0; j < columns.length; j++) {
       suggestions.push('@' + columns[j]);
     }
+    for (let j = 0; j < unique_vals.length; j++) {
+      suggestions.push('@' + unique_vals[j]);
+    }
     return suggestions;
   };
 
@@ -146,6 +157,15 @@ const HomePage = () => {
     return listCols;
   };
 
+  function isNumber(n) {
+    if (!isNaN(n)) {
+      return true;
+    } else {
+      return false;
+    }
+    //return /^-?[\d.]+(?:e-?\d+)?$/.test(n);
+  }
+
   const generateTree = async () => {
     const formData = new FormData();
     formData.append('constraints', JSON.stringify(instructions));
@@ -166,14 +186,14 @@ const HomePage = () => {
         body: formData,
       });
       const generateTree = await generateTreeResponse.json();
-      console.log(generateTree);
+      //console.log(generateTree);
       setLoading(false);
       if (generateTree && generateTree.dt_type) {
         const msg = {
           text:
             generateTree.dt_type === 'classification'
               ? 'Decision tree (classification) generated with an accuracy of ' +
-                parseFloat(generateTree.accuracy) * 100 +
+                (parseFloat(generateTree.accuracy) * 100).toFixed(2) +
                 '%'
               : 'Decision tree (regression) generated with an error of ' +
                 parseFloat(generateTree.accuracy),
@@ -196,6 +216,16 @@ const HomePage = () => {
         dispatch(
           setHasTree({
             has_tree: true,
+          })
+        );
+        dispatch(
+          setUniqueValues({
+            unique_values: generateTree.unique_values,
+          })
+        );
+        dispatch(
+          setUniqueVals({
+            unique_vals: generateTree.unique_vals,
           })
         );
         const instructs = { ...instructions };
@@ -246,6 +276,13 @@ const HomePage = () => {
       );
     }
   };
+
+  function splitStringInThree(str) {
+    const parts = str.split(',');
+    const firstTwo = parts.slice(0, 2);
+    const rest = parts.slice(2).join(',');
+    return [...firstTwo, rest];
+  }
 
   const handleSendMessage = async () => {
     let autogenerate = 0;
@@ -362,10 +399,40 @@ const HomePage = () => {
             //set node and threshold
             let parts = value.split(' to ');
             const node_number = getNumber(parts[0]);
-            let parts2 = parts[1].split('with');
+            let parts2 = parts[1].split('with a threshold of');
             const cols = getColumns(parts2[0]);
-            const threshold = getNumber(parts2[1]);
-            if (node_number >= 0 && threshold !== 0 && cols.length > 0) {
+            let threshold = '';
+            if (cols.length > 0) {
+              if (!isNumber(parts2[1].trim())) {
+                let pt = parts2[1].trim();
+                let dtlt = pt.split(',');
+                for (let m in dtlt) {
+                  for (let vl in unique_values[cols[0]]) {
+                    if (
+                      dtlt[m].trim().toLowerCase() ===
+                      unique_values[cols[0]][vl].trim().toLowerCase()
+                    ) {
+                      //console.log(vl);
+                      if (threshold === '') {
+                        threshold = unique_values[cols[0]][vl];
+                      } else {
+                        threshold =
+                          threshold + ', ' + unique_values[cols[0]][vl];
+                      }
+                      break;
+                    }
+                  }
+                }
+              } else {
+                threshold = getNumber(parts2[1]);
+              }
+            }
+
+            if (
+              node_number >= 0 &&
+              (threshold !== null || threshold !== '') &&
+              cols.length > 0
+            ) {
               findMatch = true;
               const instructs = { ...instructions };
               if (!('nodes_constraints' in instructs)) {
@@ -501,7 +568,7 @@ const HomePage = () => {
               setContentSidebar(3);
             }
           } else if (i === 11) {
-            //root node color
+            //root root size
             const num = getNumber(str);
             if (num >= 0) {
               findMatch = true;
@@ -710,7 +777,7 @@ const HomePage = () => {
               } else {
                 let vl = v[0];
                 if (vl.includes(',')) {
-                  const dt = vl.split(',');
+                  const dt = splitStringInThree(vl);
                   text =
                     'set node ' +
                     dt[0] +
@@ -998,6 +1065,7 @@ const HomePage = () => {
               setShowSuggestions={setShowSuggestions}
               showSuggestions={showSuggestions}
               handleSendMessage={handleSendMessage}
+              loading={loading}
             />
             {/*<input
               type='text'

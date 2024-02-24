@@ -27,6 +27,13 @@ def check_dt_type(dtype, len_target):
         return 'regression'
     return ''
 
+def check_is_cat(dtype, len_target):
+    if pd.api.types.is_categorical_dtype(dtype) or dtype=="object" or (pd.api.types.is_numeric_dtype(dtype) and len_target<=10):
+        return True
+    elif pd.api.types.is_numeric_dtype(dtype):
+        return False
+    return True
+
 def generate_tree(filename, constraints={}, rep_filename=None):
     random_code = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(10)])
     response_filename = f"{filename.replace('.csv', '')}/{random_code}.json"
@@ -47,7 +54,9 @@ def generate_tree(filename, constraints={}, rep_filename=None):
                 "string_tree":"", 
                 "dict_tree": "",
                 "output_tree":"",
-                "dt_type": ""
+                "dt_type": "",
+                "unique_values": {},
+                "unique_vals": []
                 }
     
     # 1. Load dataset.
@@ -65,11 +74,26 @@ def generate_tree(filename, constraints={}, rep_filename=None):
     if target in features:
         features.remove(target)
     
-    
+    ftypes = []
+    for f in features:
+        df_f = df[f]
+        dtype = df_f.dtype
+        check_cat = check_is_cat(dtype, 10000)
+        ftypes.append(check_cat)
+        if check_cat:
+            for v in df_f.unique().tolist():
+                if f not in response["unique_values"]:
+                    response["unique_values"][f] = []
+                response["unique_values"][f].append(str(v))
+                response["unique_vals"].append(f+'#'+str(v))
+
+    #print(ftypes)
+    #print(response["unique_values"])
+
     df_target = df[target]
     dtype = df_target.dtype
     target_names = df_target.unique()
-    
+
     dt_type = check_dt_type(dtype, len(target_names))
     response["dt_type"] = dt_type
 
@@ -99,7 +123,7 @@ def generate_tree(filename, constraints={}, rep_filename=None):
         )
 
         X, y = dataset.data, dataset.target
-
+        
         #load prev dataset
         dict_tree = {}
         if rep_filename and rep_filename != 'no':
@@ -109,12 +133,14 @@ def generate_tree(filename, constraints={}, rep_filename=None):
                 f = open(rep_path, "r")
                 data = f.read()
                 data = data.replace("None", '""')
+                data = data.replace("False", '0')
+                data = data.replace("True", '1')
                 data = json.loads(data)
                 dict_tree = data["dict_tree"]
         
         # 2. Fit decision tree.
         #print(constraints)
-        clf = DecisionTreeClassifier(constraints, features, dict_tree)
+        clf = DecisionTreeClassifier(constraints, features, dict_tree, ftypes)
         clf.fit(X, y)
 
         # 3. Predict.
@@ -127,7 +153,7 @@ def generate_tree(filename, constraints={}, rep_filename=None):
 
         string_tree = clf.string_tree(features, target_names)
         response["string_tree"] = string_tree
-        print(string_tree)
+        #print(string_tree)
 
         dict_tree = clf.generate_dict()
         #response["dict_tree"] = json.dumps(dict_tree, indent = 4)
@@ -172,7 +198,7 @@ def generate_tree(filename, constraints={}, rep_filename=None):
                 dict_tree = data["dict_tree"]
         # 2. Fit decision tree.
         #print(constraints)
-        clf = DecisionTreeRegression(constraints, features, dict_tree)
+        clf = DecisionTreeRegression(constraints, features, dict_tree, ftypes)
         clf.fit(X, y)
 
         # 3. Predict.
@@ -185,7 +211,7 @@ def generate_tree(filename, constraints={}, rep_filename=None):
 
         string_tree = clf.string_tree(features)
         response["string_tree"] = string_tree
-        print(string_tree)
+        #print(string_tree)
 
         dict_tree = clf.generate_dict()
         #response["dict_tree"] = json.dumps(dict_tree, indent = 4)
@@ -205,13 +231,16 @@ def generate_tree(filename, constraints={}, rep_filename=None):
     f.write(myrep)
     f.close()
 
+    print(float(format(accuracy, ".4f")) if dt_type=='classification' else float(format(accuracy, ".2f")))
     return_rep = {'response_filename':response_filename, 
                     'constraints':constraints, 
                     'filename':filename, 
                     'accuracy': float(format(accuracy, ".4f")) if dt_type=='classification' else float(format(accuracy, ".2f")), 
                     'output_tree':output_tree,
-                    'dt_type':dt_type}
-
+                    'dt_type':dt_type,
+                    'unique_values': response["unique_values"],
+                    'unique_vals': response["unique_vals"]}
+    
     return return_rep
 
 #rep = generate_tree("iris_20240128204554.csv")
@@ -235,9 +264,10 @@ filename = "Breast_cancer_data_20240209152807.csv"
 #filename = "demo_iris.csv"
 rep = generate_tree(filename, constraints, rep_filename)
 
-constraints = {}
-rep_filename = 'no'
-filename = "Breast_cancer_data_20240211004318.csv"
-#filename = "demo_iris.csv"
+#constraints = {"max_depth":2}
+constraints = {"nodes_constraints":{"2":{"yes":["sepal.length,1.7"]}}}
+rep_filename = 'demo_iris/twfoI59jBN.json'
+#filename = "Breast_cancer_data_20240211004318.csv"
+filename = "demo_iris.csv"
 rep = generate_tree(filename, constraints, rep_filename)
 """

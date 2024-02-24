@@ -14,9 +14,8 @@ const AboutPage = () => {
             effortlessly build{' '}
             <b>classification and regression decision trees</b>. ChatDT offers a
             user-friendly interface, allowing you to create or modify decision
-            trees through natural and intuitive conversations. No need for
-            complicated forms or coding – just chat and watch your decision tree
-            come to life.
+            trees through intuitive commands. No need for complicated forms or
+            coding – just chat and watch your decision tree come to life.
           </p>
 
           <Instructions />
@@ -24,12 +23,24 @@ const AboutPage = () => {
           <p className='text-xl font-semibold'>Demo datasets</p>
           <div className='pt-2 pl-3'>
             <ul className='list-disc pl-2'>
+              <li key='10' className='mb-2'>
+                <b>Iris: </b>
+                <a
+                  className='link'
+                  href='https://archive.ics.uci.edu/dataset/53/iris'
+                  target='_blank'
+                  rel='noreferrer'
+                >
+                  https://archive.ics.uci.edu/dataset/53/iris
+                </a>
+              </li>
               <li key='30' className='mb-2'>
                 <b>Wine quality: </b>
                 <a
                   className='link'
                   href='https://archive.ics.uci.edu/dataset/186/wine+quality'
                   target='_blank'
+                  rel='noreferrer'
                 >
                   https://archive.ics.uci.edu/dataset/186/wine+quality
                 </a>
@@ -40,6 +51,7 @@ const AboutPage = () => {
                   className='link'
                   href='https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic'
                   target='_blank'
+                  rel='noreferrer'
                 >
                   https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic
                 </a>
@@ -50,18 +62,31 @@ const AboutPage = () => {
                   className='link'
                   href='https://archive.ics.uci.edu/dataset/42/glass+identification'
                   target='_blank'
+                  rel='noreferrer'
                 >
                   https://archive.ics.uci.edu/dataset/42/glass+identification
                 </a>
               </li>
               <li key='60' className='mb-2'>
-                <b>Iris: </b>
+                <b>Adult: </b>
                 <a
                   className='link'
-                  href='https://archive.ics.uci.edu/dataset/53/iris'
+                  href='http://archive.ics.uci.edu/dataset/2/adult'
                   target='_blank'
+                  rel='noreferrer'
                 >
-                  https://archive.ics.uci.edu/dataset/53/iris
+                  http://archive.ics.uci.edu/dataset/2/adult
+                </a>
+              </li>
+              <li key='70' className='mb-2'>
+                <b>Student: </b>
+                <a
+                  className='link'
+                  href='https://archive.ics.uci.edu/dataset/320/student+performance'
+                  target='_blank'
+                  rel='noreferrer'
+                >
+                  https://archive.ics.uci.edu/dataset/320/student+performance
                 </a>
               </li>
             </ul>

@@ -31,60 +31,71 @@ api = APIRouter(prefix='/api', tags=['API'])
 #iris_20240128204554.csv
 @api.post('/uploadfile')
 def upload_file(uploaded_file: UploadFile = File(...)):
-    if uploaded_file.content_type != 'text/csv':
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wow, That's not allowed")
-    
-    time_str = time.strftime('%Y%m%d%H%M%S')
-    new_filename =  "{}_{}.csv".format(os.path.splitext(uploaded_file.filename)[0], time_str)
-    path = f"uploads/{new_filename}"
+    try:
+        if uploaded_file.content_type != 'text/csv':
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wow, That's not allowed")
+        
+        time_str = time.strftime('%Y%m%d%H%M%S')
+        new_filename =  "{}_{}.csv".format(os.path.splitext(uploaded_file.filename)[0], time_str)
+        path = f"uploads/{new_filename}"
 
-    with open(path, 'w+b') as file:
-        shutil.copyfileobj(uploaded_file.file, file)
+        with open(path, 'w+b') as file:
+            shutil.copyfileobj(uploaded_file.file, file)
 
-    df = pd.read_csv(path)
-    df = df.sample(frac=1).reset_index(drop=True)
-    df.columns = map(str.lower, df.columns)
-    df.columns = df.columns.str.strip()
-    df.columns = df.columns.str.replace(' ', '_')
-    df.columns = df.columns.str.replace('(', '_')
-    df.columns = df.columns.str.replace(')', '')
-    columns = list(df.columns)
-    shuffle_new_filename = f"uploads/shuffle_{new_filename}"
-    df.to_csv(shuffle_new_filename, index=False,columns=columns)
+        df = pd.read_csv(path)
+        df = df.sample(frac=1).reset_index(drop=True)
+        df.columns = map(str.lower, df.columns)
+        df.columns = df.columns.str.strip()
+        df.columns = df.columns.str.replace(' ', '_')
+        df.columns = df.columns.str.replace('(', '_')
+        df.columns = df.columns.str.replace(')', '')
+        columns = list(df.columns)
+        shuffle_new_filename = f"uploads/shuffle_{new_filename}"
+        df.to_csv(shuffle_new_filename, index=False,columns=columns)
 
-    endx = 50 if len(df) > 50 else len(df)
-    table = df.iloc[0:endx].to_dict(orient="records")
+        endx = 50 if len(df) > 50 else len(df)
+        table = df.iloc[0:endx].to_dict(orient="records")
 
-    return {
-        'file': new_filename,
-        'filename': uploaded_file.filename,
-        'columns': columns,
-        'table':table
-    }
+        return {
+            'file': new_filename,
+            'filename': uploaded_file.filename,
+            'columns': columns,
+            'table':table
+        }
+    except Exception as e:
+            raise HTTPException(
+                    status_code=500, detail=f"Error processing data: {str(e)}"
+                )
 
 @api.post('/demo')
 def demo(demo_dataset: str = Form(...)):
     #demo_dataset = "demo_iris.csv"
-    path = f"uploads/shuffle_{demo_dataset}"
+    try:
+        path = f"uploads/shuffle_{demo_dataset}"
 
-    df = pd.read_csv(path)
-    df = df.sample(frac=1).reset_index(drop=True)
-    df.columns = map(str.lower, df.columns)
-    df.columns = df.columns.str.strip()
-    df.columns = df.columns.str.replace(' ', '_')
-    df.columns = df.columns.str.replace('(', '_')
-    df.columns = df.columns.str.replace(')', '')
-    columns = list(df.columns)
+        df = pd.read_csv(path)
+        df = df.sample(frac=1).reset_index(drop=True)
+        df.columns = map(str.lower, df.columns)
+        #df.columns = [x.lower() for x in df.columns]
+        df.columns = df.columns.str.strip()
+        df.columns = df.columns.str.replace(' ', '_')
+        df.columns = df.columns.str.replace('(', '_')
+        df.columns = df.columns.str.replace(')', '')
+        columns = list(df.columns)
+        
+        endx = 30 if len(df) > 30 else len(df)
+        table = df.iloc[0:endx].to_dict(orient="records")
 
-    endx = 50 if len(df) > 50 else len(df)
-    table = df.iloc[0:endx].to_dict(orient="records")
-
-    return {
-        'file': demo_dataset,
-        'filename': demo_dataset,
-        'columns': columns,
-        'table':table
-    }
+        return {
+            'file': demo_dataset,
+            'filename': demo_dataset,
+            'columns': columns,
+            'table':table
+        }
+    except Exception as e:
+        raise HTTPException(
+                status_code=500, detail=f"Error processing data: {str(e)}"
+            )
 
 """
 @api.get("/getdata")
@@ -122,7 +133,6 @@ async def process_data(filename: str = Form(...), rep_filename: str = Form(...),
         raise HTTPException(
             status_code=500, detail=f"Error processing data: {str(e)}"
         )
-
     return result
 
 @api.post("/removedata")
@@ -133,7 +143,6 @@ async def remove_data(filename: str = Form(...)):
             result = {'remove': 1}
         else:
             result = remove_files(filename)
-        return result
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error processing data: {str(e)}"

@@ -10,10 +10,11 @@ left_nodes = []
 right_nodes = []
 
 class DecisionTreeRegression:
-    def __init__(self, constraints={}, features={}, dict_tree={}):
+    def __init__(self, constraints={}, features={}, dict_tree={}, ftypes=[]):
         self.constraints = constraints
         self.features = features
         self.dict_tree = dict_tree
+        self.ftypes = ftypes
         self.min_num_samples = float("inf")
         self.max_num_samples = -float("inf")
         self.min_var_red = float("inf")
@@ -66,6 +67,11 @@ class DecisionTreeRegression:
         if idx is not None:
             node.var_red = dict_tree["var_red"]
             node.feature_index = idx
+            node.is_categorical = self.ftypes[idx]
+            if not self.ftypes[idx]:
+                node.operator = '<'
+            else:
+                node.operator = '='
             node.threshold = thr
             node.ref_init = dict_tree["ref"]
             node.left = self._load_tree(dict_tree["left"] if ("left" in dict_tree and dict_tree["left"] and dict_tree["left"] != "") else None)
@@ -103,13 +109,16 @@ class DecisionTreeRegression:
                             node = None
                 if "yes" in nodes_constraints:
                     for value in nodes_constraints["yes"]:
-                        rep = value.split(",")
+                        rep = value.split(",", 1)
                         feature_name = rep[0]
                         feature_num = self.features.index(feature_name)
                         yes_features_index.append(feature_num)
                         if len(rep) == 2:
                             idx = feature_num
-                            thr = float(rep[1])
+                            if not self.ftypes[idx]:
+                                thr = float(rep[1])
+                            else:
+                                thr = rep[1]
         
         good_feature_index = yes_features_index.copy()
         if len(yes_features_index) == 0:
@@ -146,7 +155,23 @@ class DecisionTreeRegression:
             if idx is None and thr is None:
                 idx, thr, var_red = self._best_split(X, y, good_feature_index)
             if idx is not None:
-                indices_left = X[:, idx] < thr
+                #indices_left = X[:, idx] < thr
+                node.is_categorical = self.ftypes[idx]
+                if not self.ftypes[idx]:
+                    indices_left = X[:, idx] < thr
+                    node.operator = '<'
+                else:
+                    node.operator = '='
+                    array_thr = thr.strip().split(",")
+                    indices_left = None
+                    for v in array_thr:
+                        v = v.strip()
+                        if indices_left is None:
+                            indices_left = (X[:, idx] == v)
+                        else:
+                            indices_left = indices_left | (X[:, idx] == v)
+                    indices_left = (indices_left)
+
                 X_left, y_left = X[indices_left], y[indices_left]
                 X_right, y_right = X[~indices_left], y[~indices_left]
                 if var_red is None:
@@ -204,7 +229,22 @@ class DecisionTreeRegression:
         if constraints_respected:
             idx, thr, var_red = self._best_split(X, y)
             if idx is not None and var_red is not None:
-                indices_left = X[:, idx] < thr
+                #indices_left = X[:, idx] < thr
+                node.is_categorical = self.ftypes[idx]
+                if not self.ftypes[idx]:
+                    indices_left = X[:, idx] < thr
+                    node.operator = '<'
+                else:
+                    node.operator = '='
+                    array_thr = thr.strip().split(",")
+                    indices_left = None
+                    for v in array_thr:
+                        v = v.strip()
+                        if indices_left is None:
+                            indices_left = (X[:, idx] == v)
+                        else:
+                            indices_left = indices_left | (X[:, idx] == v)
+                    indices_left = (indices_left)
                 X_left, y_left = X[indices_left], y[indices_left]
                 X_right, y_right = X[~indices_left], y[~indices_left]
                 node.feature_index = idx
@@ -246,7 +286,20 @@ class DecisionTreeRegression:
             # loop over all the feature values present in the data
             for threshold in possible_thresholds:
                 # get current split
-                indices_left = X[:, feature_index] < threshold
+                if not self.ftypes[feature_index]:
+                    indices_left = X[:, feature_index] < threshold
+                else:
+                    array_thr = threshold.strip().split(",")
+                    indices_left = None
+                    for v in array_thr:
+                        v = v.strip()
+                        if indices_left is None:
+                            indices_left = (X[:, feature_index] == v)
+                        else:
+                            indices_left = indices_left | (X[:, feature_index] == v)
+                    indices_left = (indices_left)
+
+                #indices_left = X[:, feature_index] < threshold
                 X_left, y_left = X[indices_left], y[indices_left]
                 X_right, y_right = X[~indices_left], y[~indices_left]
 
@@ -267,10 +320,18 @@ class DecisionTreeRegression:
         """Predict class for a single sample."""
         node = self.tree_
         while node.left:
-            if inputs[node.feature_index] < node.threshold:
-                node = node.left
+            if not node.is_categorical:
+                if inputs[node.feature_index] < node.threshold:
+                    node = node.left
+                else:
+                    node = node.right
             else:
-                node = node.right
+                array_thr = node.threshold.strip().split(",")
+                array_thr = [s.strip() for s in array_thr]
+                if inputs[node.feature_index].strip() in array_thr:
+                    node = node.left
+                else:
+                    node = node.right
         return node.value
     
     def calculate_accuracy(self, Y_test, Y_pred):
@@ -323,9 +384,15 @@ class DecisionTreeRegression:
 
         output = {}
         if dict['left']:
-            threshold = str(format(dict['threshold'], ".2f"))
-            #threshold = str(dict['threshold'])
-            output['name'] = feature_names[dict['feature_index']] + "<" + threshold
+            #threshold = str(format(dict['threshold'], ".2f"))
+            #output['name'] = feature_names[dict['feature_index']] + "<" + threshold
+            if not dict['is_categorical']:
+                threshold = str(format(dict['threshold'], ".2f"))
+                output['name'] = feature_names[dict['feature_index']] + "<" + threshold
+            else:
+                array_thr = dict['threshold'].strip().split(",")
+                output['name'] = feature_names[dict['feature_index']] + "=" + ' or '.join(array_thr)
+            
             var_red = float(format(dict['var_red'] if dict['var_red'] else 0, ".2f"))
             #var_red = dict['var_red']
             output['attributes'] = {
@@ -361,12 +428,17 @@ class DecisionTreeRegression:
             dict = tree.__dict__
         except Exception as e:
             dict = tree
-
             #dict = {k:dict[k] for k in needed_keys}
         if not dict['right']:
             print(dict['value'])
         else:
-            print(feature_names[dict['feature_index']]+ "<"+ str(float(dict['threshold']))+ "?"+ str(float(dict['var_red'])))
+            #print(feature_names[dict['feature_index']]+ "<"+ str(float(dict['threshold']))+ "?"+ str(float(dict['var_red'])))
+            if not dict['is_categorical']:
+                print(feature_names[dict['feature_index']]+ "<"+ str(float(dict['threshold']))+ "?"+ str(float(dict['var_red'])))
+            else:
+                array_thr = dict['threshold'].strip().split(",")
+                print(feature_names[dict['feature_index']]+ "="+' or '.join(array_thr)+ "?"+ str(float(dict['var_red'])))
+
             print("%sleft:" % (indent), end="")
             self.print_tree(feature_names, dict['left'], indent + " ")
             print("%sright:" % (indent), end="")
@@ -376,7 +448,6 @@ class DecisionTreeRegression:
         ''' function to print the tree '''
         if not tree:
             tree = self.tree_
-         
         try:
             dict = tree.__dict__
         except Exception as e:
@@ -385,10 +456,23 @@ class DecisionTreeRegression:
         if not dict['right']:
             return str(dict['value']) + "\n"
         else:
-            return feature_names[dict['feature_index']]+ "<"+ str(float(dict['threshold']))+ "?"+ str(float(dict['var_red']))+ "\n" \
+            if not dict['is_categorical']:
+                return feature_names[dict['feature_index']]+ "<"+ str(float(dict['threshold']))+ "?"+ str(float(dict['var_red']))+ "\n" \
+                + str("%sleft:" % (indent)) \
+                + self.string_tree(feature_names, dict['left'], indent + " ") \
+                + str("%sright:" % (indent)) \
+                + self.string_tree(feature_names, dict['right'], indent + " ")
+            else:
+                array_thr = dict['threshold'].strip().split(",")
+                return feature_names[dict['feature_index']]+ "="+' or '.join(array_thr)+ "?"+ str(float(dict['var_red']))+ "\n" \
+                + str("%sleft:" % (indent)) \
+                + self.string_tree(feature_names, dict['left'], indent + " ") \
+                + str("%sright:" % (indent)) \
+                + self.string_tree(feature_names, dict['right'], indent + " ")
+            """return feature_names[dict['feature_index']]+ "<"+ str(float(dict['threshold']))+ "?"+ str(float(dict['var_red']))+ "\n" \
             + str("%sleft:" % (indent)) \
             + self.string_tree(feature_names, dict['left'], indent + " ") \
             + str("%sright:" % (indent)) \
-            + self.string_tree(feature_names, dict['right'], indent + " ")
+            + self.string_tree(feature_names, dict['right'], indent + " ")"""
     
         

@@ -9,7 +9,7 @@ const TableComponent = () => {
     <>
       <p className='text-xl font-semibold'>Table Content</p>
       <p className='text-gray-500'>
-        Only 50 random rows of the file are displayed.
+        Only 30 random rows of the file are displayed.
       </p>
       <div className='pt-4'>
         <table className='min-w-full bg-white border border-gray-300'>
