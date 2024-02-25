@@ -524,7 +524,7 @@ const HomePage = () => {
           } else if (i === 9) {
             //remove tree
             let node_number = getNumber(str);
-            if (node_number >= 0) {
+            if (node_number > 0) {
               findMatch = true;
               let instructs = { ...instructions };
               if (!('nodes_constraints' in instructs)) {
@@ -570,7 +570,7 @@ const HomePage = () => {
           } else if (i === 11) {
             //root root size
             const num = getNumber(str);
-            if (num >= 0) {
+            if (num > 0) {
               findMatch = true;
               dispatch(
                 updateTreeLayout({
@@ -608,7 +608,7 @@ const HomePage = () => {
           } else if (i === 13) {
             //branch node size
             const num = getNumber(str);
-            if (num >= 0) {
+            if (num > 0) {
               findMatch = true;
               dispatch(
                 updateTreeLayout({
@@ -646,7 +646,7 @@ const HomePage = () => {
           } else if (i === 15) {
             //root leaf size
             const num = getNumber(str);
-            if (num >= 0) {
+            if (num > 0) {
               findMatch = true;
               dispatch(
                 updateTreeLayout({
