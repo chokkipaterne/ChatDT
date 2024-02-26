@@ -4,28 +4,28 @@ ChatDT is designed to empower you with the ability to effortlessly build classif
 
 A demo is accessible at http://79.143.180.14:3000/
 
-# Screenshots
-
 # Installation
 
 use the dockerfile provided to install the frontend and the backend.
 
-## for the backend:
+## Backend:
 
+```bash
 docker build -t my-fastapi-server .
-
 docker run -p 8000:8000 my-fastapi-server
+```
 
 Go to localhost:8000/docs
 
 ![Backend](/screenshots/backend.png)
 Backend
 
-## for the frontend:
+## Frontend:
 
+```bash
 docker build -t my-react-app .
-
 docker run -p 3000:3000 my-react-app
+```
 
 Go to localhost:3000
 
