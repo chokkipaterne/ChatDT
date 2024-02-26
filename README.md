@@ -32,67 +32,67 @@ Go to localhost:3000
 ![Frontend](/screenshots/frontend.png)
 Frontend
 
-## List of commands
+# List of commands
 
 As of now, we have defined 17 commands that can be used to interact with ChatDT.
 
-### Commands for creating a decision tree
+## Commands for creating a decision tree
 
-set features to [column_names separated by comma] : by default it takes all the columns except the last column.
+- set features to [column_names separated by comma] : by default it takes all the columns except the last column.
 
-set target to [column_name] : by default the target column is the last column.
+- set target to [column_name] : by default the target column is the last column.
 
-set training data size to [train_size] : by default 0.7 (i.e., 70%)
+- set training data size to [train_size] : by default 0.7 (i.e., 70%)
 
-set max depth to [max_depth]
+- set max depth to [max_depth]
 
-set min samples split to [min_samples_split]
+- set min samples split to [min_samples_split]
 
-### Commands to update an existing decision tree (these commands should be used after the creation of a decision tree, not before)
+## Commands to update an existing decision tree (these commands should be used after the creation of a decision tree, not before)
 
-set node [node_number] to [column_name] with a threshold of [threshold]: threshold can be a numerical value if the column is numerical, or it can be one or multiple categories of the column if the column is categorical
+- set node [node_number] to [column_name] with a threshold of [threshold]: threshold can be a numerical value if the column is numerical, or it can be one or multiple categories of the column if the column is categorical
 
-set node [node_number] to one of the following features: [column_names separated by comma]
+- set node [node_number] to one of the following features: [column_names separated by comma]
 
-set node [node_number] to any feature except the following: [column_names separated by comma]
+- set node [node_number] to any feature except the following: [column_names separated by comma]
 
-remove tree from node [node_number]
+- remove tree from node [node_number]
 
-### Commands to update the layout of an existing decision tree (these commands should be used once the user is satisfied about the generated decision tree but just wants to change the look and feel of the generated decision tree)
+## Commands to update the layout of an existing decision tree (these commands should be used once the user is satisfied about the generated decision tree but just wants to change the look and feel of the generated decision tree)
 
-set root node color to [color]: by default red
+- set root node color to [color]: by default red
 
-set root node size to [size]: by default 30
+- set root node size to [size]: by default 30
 
-set branch node color to [color]: by default blue
+- set branch node color to [color]: by default blue
 
-set branch node size to [size]: by default 20
+- set branch node size to [size]: by default 20
 
-set leaf node color to [color]: by default green
+- set leaf node color to [color]: by default green
 
-set leaf node size to [size]: by default 25
+- set leaf node size to [size]: by default 25
 
-### This command should be called to create a decision tree after the user sets up its settings/constraints
+## This command should be called to create a decision tree after the user sets up its settings/constraints
 
-generate
+- generate
 
-### This command should be called to see all the commands
+## This command should be called to see all the commands
 
-help
+- help
 
-## Demo datasets
+# Demo datasets
 
-Iris: https://archive.ics.uci.edu/dataset/53/iris
+- Iris: https://archive.ics.uci.edu/dataset/53/iris
 
-Wine quality: https://archive.ics.uci.edu/dataset/186/wine+quality
+- Wine quality: https://archive.ics.uci.edu/dataset/186/wine+quality
 
-Breast cancer: https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic
+- Breast cancer: https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic
 
-Glass identification: https://archive.ics.uci.edu/dataset/42/glass+identification
+- Glass identification: https://archive.ics.uci.edu/dataset/42/glass+identification
 
-Adult: http://archive.ics.uci.edu/dataset/2/adult
+- Adult: http://archive.ics.uci.edu/dataset/2/adult
 
-Student: https://archive.ics.uci.edu/dataset/320/student+performance
+- Student: https://archive.ics.uci.edu/dataset/320/student+performance
 
 # Contact us
 
