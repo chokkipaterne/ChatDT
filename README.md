@@ -93,7 +93,3 @@ As of now, we have defined 17 commands that can be used to interact with ChatDT.
 - Adult: http://archive.ics.uci.edu/dataset/2/adult
 
 - Student: https://archive.ics.uci.edu/dataset/320/student+performance
-
-# Contact us
-
-Any issues or suggestions, feel free to me (cpeterabiola@yahoo.fr)
