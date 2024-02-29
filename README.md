@@ -1,6 +1,6 @@
 # ChatDT: Your personalized guide to seamless decision tree creation!
 
-ChatDT is designed to empower you with the ability to effortlessly build classification and regression decision trees. ChatDT offers a user-friendly interface, allowing you to create or modify decision trees through intuitive commands. No need for complicated forms or coding – just chat and watch your decision tree come to life.
+ChatDT is an open source web application designed to empower you with the ability to effortlessly build classification and regression decision trees. ChatDT offers a user-friendly interface, allowing you to create or modify decision trees through intuitive commands. No need for complicated forms or coding – just chat and watch your decision tree come to life.
 
 A demo is accessible at http://79.143.180.14:3000/
 
@@ -9,6 +9,7 @@ A demo is accessible at http://79.143.180.14:3000/
 use the dockerfile provided to install the frontend and the backend.
 
 ## Backend:
+This is an API built with FastAPI (Python).
 
 ```bash
 docker build -t my-fastapi-server .
@@ -21,6 +22,7 @@ Go to localhost:8000/docs
 Backend
 
 ## Frontend:
+This is a web application built with React.
 
 ```bash
 docker build -t my-react-app .
