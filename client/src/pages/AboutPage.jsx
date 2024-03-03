@@ -4,7 +4,7 @@ const AboutPage = () => {
   return (
     <div className='pt-5 px-2 max-w-2xl mt-1 text-slate-600 mx-auto pb-4'>
       <div className='card lg:card-side bg-base-100 shadow-xl'>
-        <div className='card-body'>
+        <div className='card-body bg-white'>
           <h2 className='card-title'>
             Welcome to ChatDT, your personalized guide to seamless decision tree
             creation!

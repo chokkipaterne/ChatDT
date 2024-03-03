@@ -214,7 +214,7 @@ const FileUpload = () => {
             </i>
           </span>
         </p>
-        <div className='pb-5'>
+        <div className='pb-5 bg-white'>
           <button
             className={`btn ml-2 mb-2 rounded-full btn-md btn-primary ${
               disabled ? 'btn-disabled' : ''
@@ -275,6 +275,7 @@ const FileUpload = () => {
           >
             student.csv
           </button>
+          <br />
         </div>
       </div>
     </div>

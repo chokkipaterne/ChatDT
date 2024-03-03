@@ -13,6 +13,7 @@ body,
   font-family: 'Rubik', sans-serif;
   overflow-x: hidden;
   background-color: white;
+  background: white;
 }
 .suggestion-list {
   position: absolute !important;
@@ -24,6 +25,14 @@ body,
   width: 100% !important;
   min-width: 100% !important;
 }
+
+div,
+p,
+input,
+btn {
+  background: transparent;
+}
+
 .suggestion-item {
   cursor: pointer;
   padding: 5px 0 0 5px;

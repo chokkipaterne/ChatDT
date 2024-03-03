@@ -51,7 +51,7 @@ const Navbar = () => {
             About
           </Link>
           <button
-            className='btn rounded-full mx-2 text-primary font-medium'
+            className='btn rounded-full mx-2 text-primary font-medium bg-white'
             onClick={async () => {
               await removeData();
             }}

@@ -159,7 +159,6 @@ const DecisionTree = (props) => {
           leafNodeClassName='node__leaf'
           scaleExtent={scaleExtent}
           zoomable={true}
-          onNodeMouseOver={onNodeMouseOver}
         />
       )}
       {showType > 0 && (
