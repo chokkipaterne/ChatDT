@@ -194,6 +194,8 @@ def generate_tree(filename, constraints={}, rep_filename=None):
                 f = open(rep_path, "r")
                 data = f.read()
                 data = data.replace("None", '""')
+                data = data.replace("False", '0')
+                data = data.replace("True", '1')
                 data = json.loads(data)
                 dict_tree = data["dict_tree"]
         # 2. Fit decision tree.
@@ -231,7 +233,7 @@ def generate_tree(filename, constraints={}, rep_filename=None):
     f.write(myrep)
     f.close()
 
-    print(float(format(accuracy, ".4f")) if dt_type=='classification' else float(format(accuracy, ".2f")))
+    #print(float(format(accuracy, ".4f")) if dt_type=='classification' else float(format(accuracy, ".2f")))
     return_rep = {'response_filename':response_filename, 
                     'constraints':constraints, 
                     'filename':filename, 
@@ -270,4 +272,15 @@ rep_filename = 'demo_iris/twfoI59jBN.json'
 #filename = "Breast_cancer_data_20240211004318.csv"
 filename = "demo_iris.csv"
 rep = generate_tree(filename, constraints, rep_filename)
+
+constraints = {"max_depth":3,"nodes_constraints":{"0":{"yes":["g2,10"]}}}
+rep_filename = 'demo_student/fXqEKR6OXV.json'
+filename = "demo_student.csv"
+rep = generate_tree(filename, constraints, rep_filename)
+
+constraints = {"max_depth":3,"nodes_constraints":{"9":{"yes":["g3"]}}}
+rep_filename = 'demo_student/XPuKkSC7gY.json'
+filename = "demo_student.csv"
+rep = generate_tree(filename, constraints, rep_filename)
 """
+
