@@ -250,9 +250,10 @@ const HomePage = () => {
         ) {
           text = '. Error details: ' + generateTree.detail;
         }
+        console.log('Failed to generate tree' + text);
         dispatch(
           addMessage({
-            text: 'Failed to generate tree' + text,
+            text: 'Something went wrong',
             sender: 'bot',
             info: true,
             table: true,
@@ -264,9 +265,10 @@ const HomePage = () => {
     } catch (error) {
       setLoading(false);
       console.log(error);
+      console.log('Failed to generate tree. Error details: ' + error.message);
       dispatch(
         addMessage({
-          text: 'Failed to generate tree. Error details: ' + error.message,
+          text: 'Something went wrong',
           sender: 'bot',
           info: true,
           table: true,
