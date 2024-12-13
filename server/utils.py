@@ -8,6 +8,29 @@ import random
 import string
 import os
 import shutil
+import re
+
+def replace_np_types(input_string):
+    """
+    Replaces all occurrences of `np.float64(X)` and `np.int64(X)` in the input string
+    with their plain numeric values (e.g., `3.14` and `42`).
+
+    Parameters:
+        input_string (str): The input string containing occurrences of `np.float64(X)` or `np.int64(X)`.
+
+    Returns:
+        str: The modified string with `np.float64(X)` and `np.int64(X)` replaced by their numeric values.
+    """
+    def replacer(match):
+        # Extract the number inside
+        return match.group(2)
+
+    # Regex to match `np.float64(X)` or `np.int64(X)` where X is a number (integer or float)
+    pattern = r"np\.(float64|int64)\(([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)\)"
+
+    # Substitute using the replacer function
+    return re.sub(pattern, replacer, input_string)
+
 
 def remove_files(filename):
     if os.path.exists("uploads/"+filename):
@@ -125,6 +148,7 @@ def generate_tree(filename, constraints={}, rep_filename=None):
         X, y = dataset.data, dataset.target
         
         #load prev dataset
+        
         dict_tree = {}
         if rep_filename and rep_filename != 'no':
             rep_path = "responses/"+rep_filename
@@ -135,13 +159,19 @@ def generate_tree(filename, constraints={}, rep_filename=None):
                 data = data.replace("None", '""')
                 data = data.replace("False", '0')
                 data = data.replace("True", '1')
+                data = replace_np_types(data)
+                print(data)
+                
                 data = json.loads(data)
+                print("hekkkopopppp111")
                 dict_tree = data["dict_tree"]
         
         # 2. Fit decision tree.
         #print(constraints)
+        print("I am here")
         clf = DecisionTreeClassifier(constraints, features, dict_tree, ftypes)
         clf.fit(X, y)
+        
 
         # 3. Predict.
         Y_pred = clf.predict(X_test)
@@ -196,6 +226,7 @@ def generate_tree(filename, constraints={}, rep_filename=None):
                 data = data.replace("None", '""')
                 data = data.replace("False", '0')
                 data = data.replace("True", '1')
+                data = replace_np_types(data)
                 data = json.loads(data)
                 dict_tree = data["dict_tree"]
         # 2. Fit decision tree.

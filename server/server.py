@@ -41,9 +41,10 @@ def upload_file(uploaded_file: UploadFile = File(...)):
 
         with open(path, 'w+b') as file:
             shutil.copyfileobj(uploaded_file.file, file)
-
+        
         df = pd.read_csv(path)
         df = df.sample(frac=1).reset_index(drop=True)
+        
         df.columns = map(str.lower, df.columns)
         df.columns = df.columns.str.strip()
         df.columns = df.columns.str.replace(' ', '_')
@@ -63,6 +64,7 @@ def upload_file(uploaded_file: UploadFile = File(...)):
             'table':table
         }
     except Exception as e:
+            print(str(e))
             raise HTTPException(
                     status_code=500, detail=f"Error processing data: {str(e)}"
                 )
@@ -130,6 +132,7 @@ async def process_data(filename: str = Form(...), rep_filename: str = Form(...),
         constraints = json.loads(constraints)
         result = generate_tree(filename, constraints, rep_filename)
     except Exception as e:
+        print(str(e))
         raise HTTPException(
             status_code=500, detail=f"Error processing data: {str(e)}"
         )
