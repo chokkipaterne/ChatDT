@@ -160,15 +160,11 @@ def generate_tree(filename, constraints={}, rep_filename=None):
                 data = data.replace("False", '0')
                 data = data.replace("True", '1')
                 data = replace_np_types(data)
-                print(data)
-                
                 data = json.loads(data)
-                print("hekkkopopppp111")
                 dict_tree = data["dict_tree"]
         
         # 2. Fit decision tree.
         #print(constraints)
-        print("I am here")
         clf = DecisionTreeClassifier(constraints, features, dict_tree, ftypes)
         clf.fit(X, y)
         
